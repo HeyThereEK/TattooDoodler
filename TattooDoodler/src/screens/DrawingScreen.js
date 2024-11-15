@@ -15,14 +15,6 @@ const DrawingScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back button */}
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <MaterialIcons name="arrow-back" size={24} color="#333" />
-      </TouchableOpacity>
-
       {/* Toolbar */}
       <View style={styles.toolbar}>
         <View style={styles.leftTools}>
@@ -101,15 +93,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 2.5,
-    left: 20,
-    zIndex: 100,
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 20,
   },
   toolbar: {
     flexDirection: 'row',
