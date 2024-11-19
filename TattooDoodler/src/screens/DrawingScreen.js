@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -381,4 +381,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default DrawingScreen; BodyPartModel;
+export default DrawingScreen;
