@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,100 @@ import {
   StyleSheet,
   Dimensions,
   SafeAreaView,
+  Modal,
+  Image,
 } from 'react-native';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls} from '@react-three/drei';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
+import * as THREE from 'three';
+import { extend } from '@react-three/fiber'
+extend({ Div: THREE.Object3D})
+
+const BodyPartModel = ({ mtlPath, objPath }) => {
+  const [materials, setMaterials] = useState(null);
+  const [obj, setObj] = useState(null);
+
+  useEffect(() => {
+    const loadModel = async () => {
+      const mtlLoader = new MTLLoader();
+      const materialsLoaded = await new Promise((resolve, reject) => {
+        mtlLoader.load(mtlPath, resolve, undefined, reject);
+      });
+
+      materialsLoaded.preload();
+      setMaterials(materialsLoaded);
+
+      const objLoader = new OBJLoader();
+      objLoader.setMaterials(materialsLoaded);
+
+      const objLoaded = await new Promise((resolve, reject) => {
+        objLoader.load(objPath, resolve, undefined, reject);
+      });
+
+      setObj(objLoaded);
+    };
+
+    loadModel().catch(console.error);
+  }, [mtlPath, objPath]);
+
+  if (!materials || !obj) {
+    return ;
+  }
+
+  return (
+    <primitive object={obj} />
+  );
+};
+
 
 const DrawingScreen = ({ navigation }) => {
   const [selectedTool, setSelectedTool] = useState('pen');
   const [penType, setPenType] = useState('fine');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
+
+    // Placeholder function for adding a body part
+    const handleImageSelect = (bodyPart) => {
+      console.log(`Selected: ${bodyPart}`);
+      setModalVisible(false); // Close the modal
+      // Set the selected 3D model file
+      const modelPath = getModelPath(bodyPart);
+      setSelectedModel(modelPath);
+    };
+
+    // Helper function to return STL path based on selected body part
+    const getModelPath = (bodyPart) => {
+      switch (bodyPart) {
+        case 'head':
+          return {
+            objPath: '/assets/head.obj',
+            mtlPath: '/assets/head.mtl'
+            // objPath: Asset.fromModule(require('/assets/head.obj')).uri,
+            // mtlPath: Asset.fromModule(require('/assets/head.mtl')).uri
+      }; 
+        case 'arm':
+          return {
+            objPath: '/assets/arm.obj',
+            mtlPath: '/assets/arm.mtl'
+      };
+        case 'leg':
+          return {
+            objPath: '/assets/leg.obj',
+            mtlPath: '/assets/leg.mtl'
+      };
+        case 'torso':
+          return {
+            objPath: '/assets/torso.obj',
+            mtlPath: '/assets/torso.mtl'
+      };
+        default:
+          return null;
+      }
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,12 +159,35 @@ const DrawingScreen = ({ navigation }) => {
       </View>
 
       {/* Drawing Area */}
-      <View style={styles.drawingContainer}>
+      {/* <View style={styles.drawingContainer}>
         <View style={styles.leftPanel}>
           <View style={styles.bodyPartSelector}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
             <Text style={styles.selectorText}>SELECT A BODY PART</Text>
+            </TouchableOpacity>
           </View>
+        </View> */}
+
+        <View style={styles.drawingContainer}>
+        <View style={styles.leftPanel}>
+          {/* Conditionally render the BodyPartModel if a body part is selected */}
+          {selectedModel ? (
+            <Canvas style={styles.canvas}>
+              <ambientLight />
+              <pointLight position={[10, 10, 10]} />
+              <OrbitControls />
+              <BodyPartModel mtlPath={selectedModel.mtlPath} objPath={selectedModel.objPath} />
+            </Canvas>
+          ) : (
+            <View style={styles.bodyPartSelector}>
+              <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <Text style={styles.selectorText}>SELECT A BODY PART</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
+
+
         
         <View style={styles.rightPanel}>
           <View style={styles.sketchpad}>
@@ -85,6 +196,55 @@ const DrawingScreen = ({ navigation }) => {
           <Text style={styles.sketchpadLabel}>Sketchpad</Text>
         </View>
       </View>
+
+      {/* Modal for popup */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select a Body Part</Text>
+
+            <View style={styles.imageGrid}>
+              <TouchableOpacity onPress={() => handleImageSelect('head')}>
+                <Image
+                  source={{ uri: 'https://images.free3d.com/imgd/l0/605600.jpg' }}
+                  style={styles.imageButton}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleImageSelect('arm')}>
+                <Image
+                  source={{ uri: 'https://images.free3d.com/imgd/l84/605784.jpg' }}
+                  style={styles.imageButton}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleImageSelect('leg')}>
+                <Image
+                  source={{ uri: 'https://images.free3d.com/imgd/l76/605776.jpg' }}
+                  style={styles.imageButton}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleImageSelect('torso')}>
+                <Image
+                  source={{ uri: 'https://images.free3d.com/imgd/l42/605742.jpg' }}
+                  style={styles.imageButton}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -179,6 +339,48 @@ const styles = StyleSheet.create({
     color: '#515151',
     fontSize: 20,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+  imageGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  imageButton: {
+    width: 100,
+    height: 100,
+    margin: 10,
+    borderRadius: 10,
+    backgroundColor: '#E0E0E0',
+  },
+
+
 });
 
-export default DrawingScreen;
+export default DrawingScreen; BodyPartModel;
