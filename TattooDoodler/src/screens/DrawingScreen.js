@@ -76,25 +76,23 @@ const DrawingScreen = ({ navigation }) => {
       switch (bodyPart) {
         case 'head':
           return {
-            objPath: '/assets/head.obj',
-            mtlPath: '/assets/head.mtl'
-            // objPath: Asset.fromModule(require('/assets/head.obj')).uri,
-            // mtlPath: Asset.fromModule(require('/assets/head.mtl')).uri
+            objPath: 'TattooDoodler/assets/head.obj',
+            mtlPath: 'TattooDoodler/assets/head.mtl'
       }; 
         case 'arm':
           return {
-            objPath: '/assets/arm.obj',
-            mtlPath: '/assets/arm.mtl'
+            objPath: 'TattooDoodler/assets/arm.obj',
+            mtlPath: 'TattooDoodler/assets/arm.mtl'
       };
         case 'leg':
           return {
-            objPath: '/assets/leg.obj',
-            mtlPath: '/assets/leg.mtl'
+            objPath: 'TattooDoodler/assets/leg.obj',
+            mtlPath: 'TattooDoodler/assets/leg.mtl'
       };
         case 'torso':
           return {
-            objPath: '/assets/torso.obj',
-            mtlPath: '/assets/torso.mtl'
+            objPath: 'TattooDoodler/assets/torso.obj',
+            mtlPath: 'TattooDoodler/assets/torso.mtl'
       };
         default:
           return null;
