@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from 'react';
+import React, {Suspense, useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import { Canvas } from '@react-three/fiber';
+import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
@@ -19,39 +20,65 @@ import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D})
 
-const BodyPartModel = ({ mtlPath, objPath }) => {
-  const [materials, setMaterials] = useState(null);
-  const [obj, setObj] = useState(null);
+// const BodyPartModel = ({ mtlPath, objPath }) => {
+//   const [materials, setMaterials] = useState(null);
+//   const [obj, setObj] = useState(null);
+
+//   useEffect(() => {
+//     const loadModel = async () => {
+//       const mtlLoader = new MTLLoader();
+//       const materialsLoaded = await new Promise((resolve, reject) => {
+//         mtlLoader.setResourcePath("/public/");
+//         mtlLoader.setPath("/public/");
+//         mtlLoader.load(mtlPath, resolve, undefined, reject);
+//       });
+
+//       materialsLoaded.preload();
+//       setMaterials(materialsLoaded);
+
+//       const objLoader = new OBJLoader();
+//       objLoader.setMaterials(materialsLoaded);
+//       objLoader.setPath("/public/")
+
+//       const objLoaded = await new Promise((resolve, reject) => {
+//         objLoader.load(objPath, resolve, undefined, reject);
+//       });
+
+//       setObj(objLoaded);
+//     };
+
+//     loadModel().catch(console.error);
+//   }, [mtlPath, objPath]);
+
+//   if (!materials || !obj) {
+//     return ;
+//   }
+
+//   return (
+//     <primitive object={obj} />
+//   );
+// };
+
+const BodyPartModel = ({ objPath, mtlPath }) => {
+  const objRef = useRef();
+
+  // Load MTL and then OBJ
+  const materials = useLoader(MTLLoader, mtlPath);
+  const object = useLoader(OBJLoader, objPath, (loader) => {
+    materials.preload();
+    loader.setMaterials(materials);
+  });
 
   useEffect(() => {
-    const loadModel = async () => {
-      const mtlLoader = new MTLLoader();
-      const materialsLoaded = await new Promise((resolve, reject) => {
-        mtlLoader.load(mtlPath, resolve, undefined, reject);
-      });
-
-      materialsLoaded.preload();
-      setMaterials(materialsLoaded);
-
-      const objLoader = new OBJLoader();
-      objLoader.setMaterials(materialsLoaded);
-
-      const objLoaded = await new Promise((resolve, reject) => {
-        objLoader.load(objPath, resolve, undefined, reject);
-      });
-
-      setObj(objLoaded);
-    };
-
-    loadModel().catch(console.error);
-  }, [mtlPath, objPath]);
-
-  if (!materials || !obj) {
-    return ;
-  }
+    if (objRef.current) {
+      objRef.current.add(object);
+    }
+  }, [object]);
 
   return (
-    <primitive object={obj} />
+    <group ref={objRef}>
+      <primitive object={object} />
+    </group>
   );
 };
 
@@ -76,23 +103,23 @@ const DrawingScreen = ({ navigation }) => {
       switch (bodyPart) {
         case 'head':
           return {
-            objPath: 'TattooDoodler/assets/head.obj',
-            mtlPath: 'TattooDoodler/assets/head.mtl'
+            objPath: 'head.obj',
+            mtlPath: 'head.mtl'
       }; 
         case 'arm':
           return {
-            objPath: 'TattooDoodler/assets/arm.obj',
-            mtlPath: 'TattooDoodler/assets/arm.mtl'
+            objPath: 'arm.obj',
+            mtlPath: 'arm.mtl'
       };
         case 'leg':
           return {
-            objPath: 'TattooDoodler/assets/leg.obj',
-            mtlPath: 'TattooDoodler/assets/leg.mtl'
+            objPath: 'leg.obj',
+            mtlPath: 'leg.mtl'
       };
         case 'torso':
           return {
-            objPath: 'TattooDoodler/assets/torso.obj',
-            mtlPath: 'TattooDoodler/assets/torso.mtl'
+            objPath: 'torso.obj',
+            mtlPath: 'torso.mtl'
       };
         default:
           return null;
@@ -174,7 +201,17 @@ const DrawingScreen = ({ navigation }) => {
               <ambientLight />
               <pointLight position={[10, 10, 10]} />
               <OrbitControls />
-              <BodyPartModel mtlPath={selectedModel.mtlPath} objPath={selectedModel.objPath} />
+              <Suspense fallback={null}>
+              <mesh>
+                <boxGeometry args={[1, 1, 1]} />
+                <meshStandardMaterial color="blue" />
+              </mesh>
+              
+              {/* <BodyPartModel 
+                mtlPath={selectedModel.mtlPath} 
+                objPath={selectedModel.objPath} 
+              /> */}
+              </Suspense>
             </Canvas>
           ) : (
             <View style={styles.bodyPartSelector}>
@@ -381,4 +418,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default DrawingScreen;
+export default DrawingScreen; BodyPartModel
