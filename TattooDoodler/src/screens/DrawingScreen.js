@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,12 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import DrawingCanvas from '../components/DrawingCanvas';
 
 const DrawingScreen = ({ navigation }) => {
   const [selectedTool, setSelectedTool] = useState('pen');
   const [penType, setPenType] = useState('fine');
+  const canvasRef = useRef(null);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,9 +32,12 @@ const DrawingScreen = ({ navigation }) => {
             <MaterialIcons name="save" size={24} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="undo" size={24} color="white" />
-          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.undoLastPath()}
+          >
+          <MaterialIcons name="undo" size={24} color="white" />
+        </TouchableOpacity>
           
           <TouchableOpacity style={styles.toolButton}>
             <MaterialIcons name="redo" size={24} color="white" />
@@ -79,10 +84,7 @@ const DrawingScreen = ({ navigation }) => {
         </View>
         
         <View style={styles.rightPanel}>
-          <View style={styles.sketchpad}>
-            {/* This is where we'll implement the actual drawing functionality */}
-          </View>
-          <Text style={styles.sketchpadLabel}>Sketchpad</Text>
+          <DrawingCanvas ref={canvasRef} />
         </View>
       </View>
     </SafeAreaView>
