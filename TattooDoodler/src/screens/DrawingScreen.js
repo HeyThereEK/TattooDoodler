@@ -14,6 +14,7 @@ import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import DrawingCanvas from '../components/DrawingCanvas';
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D})
@@ -40,10 +41,10 @@ const BodyPartModel = ({ objPath }) => {
     />;
 };
 
-
 const DrawingScreen = ({ navigation }) => {
   const [selectedTool, setSelectedTool] = useState('pen');
   const [penType, setPenType] = useState('fine');
+  const canvasRef = useRef(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
@@ -107,9 +108,12 @@ const DrawingScreen = ({ navigation }) => {
             <MaterialIcons name="save" size={24} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="undo" size={24} color="white" />
-          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.undoLastPath()}
+          >
+          <MaterialIcons name="undo" size={24} color="white" />
+        </TouchableOpacity>
           
           <TouchableOpacity style={styles.toolButton}>
             <MaterialIcons name="redo" size={24} color="white" />
@@ -201,10 +205,7 @@ const DrawingScreen = ({ navigation }) => {
 
         
         <View style={styles.rightPanel}>
-          <View style={styles.sketchpad}>
-            {/* This is where we'll implement the actual drawing functionality */}
-          </View>
-          <Text style={styles.sketchpadLabel}>Sketchpad</Text>
+          <DrawingCanvas ref={canvasRef} />
         </View>
       </View>
 
