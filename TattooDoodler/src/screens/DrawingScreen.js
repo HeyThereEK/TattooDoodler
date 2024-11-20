@@ -301,7 +301,8 @@ const styles = StyleSheet.create({
     minWidth: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'TitilliumWeb_200ExtraLight',
+    // fontFamily: 'TitilliumWeb_200ExtraLight',
+    // fontFamily: 'TitilliumWeb_300Light',
   },
   eraserButton: {
     flexDirection: 'row',
@@ -334,18 +335,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bodyPartSelector: {
-    backgroundColor: '#C0C0C0',
-    paddingTop: 3,
-    paddingBottom: 3,
+    // backgroundColor: '#C0C0C0',
+    backgroundColor: '#444444',
+    paddingTop: 8,
+    paddingBottom: 8,
     paddingLeft: 20,
     paddingRight: 20,
     borderRadius: 10,
   },
   selectorText: {
-    fontSize: 36,
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#878787',
     fontFamily: 'TitilliumWeb_300Light',
+    textAlign: 'center',
   },
   rightPanel: {
     flex: 1,
@@ -361,8 +364,9 @@ const styles = StyleSheet.create({
   sketchpadLabel: {
     textAlign: 'right',
     marginTop: 8,
-    color: '#515151',
+    color: '#2c2c2c',
     fontSize: 20,
+    fontFamily: 'TitilliumWeb_200ExtraLight',
   },
   modalOverlay: {
     flex: 1,
@@ -372,7 +376,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    backgroundColor: '#FFF',
+    backgroundColor: '#3d3d3d',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -381,6 +385,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#878787',
+    fontFamily: 'TitilliumWeb_300Light',
   },
   modalButton: {
     backgroundColor: '#007BFF',
@@ -391,6 +397,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#FFF',
     fontSize: 16,
+    fontFamily: 'TitilliumWeb_300Light',
   },
   imageGrid: {
     flexDirection: 'row',
@@ -407,12 +414,14 @@ const styles = StyleSheet.create({
   toggleButton: {
     backgroundColor: '#007BFF',
     padding: 8,
+    paddingVertical: 4,
     borderRadius: 6,
     marginLeft: 10
   },
   toggleButtonText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 16,
+    fontFamily: 'TitilliumWeb_300Light',
   },
 
 

@@ -15,12 +15,14 @@ import { Bokor_400Regular } from "@expo-google-fonts/bokor";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoadingScreen from './LoadingScreen';
 import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web'
+import {TitilliumWeb_300Light} from '@expo-google-fonts/titillium-web'
 
 const DrawingAppPreview = ({ navigation }) => { 
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [fontsLoaded] = useFonts({
     Bokor_400Regular,
     TitilliumWeb_200ExtraLight,
+    TitilliumWeb_300Light,
   });
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -114,14 +116,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#2c2c2c',
   },
   header: {
-    padding: 24,
+    padding: 20,
+    paddingLeft: 32,
     backgroundColor: '#232324',
     borderBottomWidth: 1,
     borderBottomColor: '#232324',
   },
   headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    // fontWeight: 'bold',
     fontFamily: 'Bokor_400Regular',
     color: '#afafaf',
   },
@@ -155,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
     marginTop: 8,
-    fontFamily: 'TitilliumWeb_200ExtraLight',
+    fontFamily: 'TitilliumWeb_300Light',
   },
   drawingCard: {
     aspectRatio: 3/4,
