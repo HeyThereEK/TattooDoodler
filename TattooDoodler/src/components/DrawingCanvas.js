@@ -2,7 +2,7 @@ import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-const DrawingCanvas = forwardRef((props, ref) => {
+const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -26,17 +26,38 @@ const DrawingCanvas = forwardRef((props, ref) => {
 
   const handleMove = (event) => {
     if (!isDrawing) return;
+  
     const { x, y } = getCoordinates(event);
-    setCurrentPath((prev) => `${prev} L${x},${y}`);
+  
+    if (selectedTool === 'eraser') {
+      console.log(`Eraser at: (${x}, ${y})`); // Debugging touch point
+      setPaths((prevPaths) =>
+        prevPaths.filter((path) => {
+          const pathPoints = path.split(' L').map((point) => {
+            const [px, py] = point.slice(1).split(',');
+            return { x: parseFloat(px), y: parseFloat(py) };
+          });
+  
+          return !pathPoints.some((point) =>
+            Math.hypot(point.x - x, point.y - y) < 20 // Adjust eraser radius
+          );
+        })
+      );
+      console.log('Paths after erase:', paths); // Debug remaining paths
+    } else {
+      setCurrentPath((prev) => `${prev} L${x},${y}`);
+    }
   };
-
+  
+  
   const handleEnd = () => {
-    if (currentPath) {
+    if (selectedTool === 'pen' && currentPath) {
       setPaths((prevPaths) => [...prevPaths, currentPath]);
     }
     setCurrentPath('');
     setIsDrawing(false);
   };
+  
 
   const clearCanvas = () => {
     setPaths([]);

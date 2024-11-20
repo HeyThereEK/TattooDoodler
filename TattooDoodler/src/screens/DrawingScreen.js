@@ -205,7 +205,7 @@ const DrawingScreen = ({ navigation }) => {
 
         
         <View style={styles.rightPanel}>
-          <DrawingCanvas ref={canvasRef} />
+          <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
         </View>
       </View>
 
