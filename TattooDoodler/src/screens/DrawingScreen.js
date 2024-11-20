@@ -13,73 +13,31 @@ import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { Asset } from 'expo-asset';
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D})
+import { MeshNormalMaterial } from 'three';
 
-// const BodyPartModel = ({ mtlPath, objPath }) => {
-//   const [materials, setMaterials] = useState(null);
-//   const [obj, setObj] = useState(null);
 
-//   useEffect(() => {
-//     const loadModel = async () => {
-//       const mtlLoader = new MTLLoader();
-//       const materialsLoaded = await new Promise((resolve, reject) => {
-//         mtlLoader.setResourcePath("/public/");
-//         mtlLoader.setPath("/public/");
-//         mtlLoader.load(mtlPath, resolve, undefined, reject);
-//       });
-
-//       materialsLoaded.preload();
-//       setMaterials(materialsLoaded);
-
-//       const objLoader = new OBJLoader();
-//       objLoader.setMaterials(materialsLoaded);
-//       objLoader.setPath("/public/")
-
-//       const objLoaded = await new Promise((resolve, reject) => {
-//         objLoader.load(objPath, resolve, undefined, reject);
-//       });
-
-//       setObj(objLoaded);
-//     };
-
-//     loadModel().catch(console.error);
-//   }, [mtlPath, objPath]);
-
-//   if (!materials || !obj) {
-//     return ;
-//   }
-
-//   return (
-//     <primitive object={obj} />
-//   );
-// };
-
-const BodyPartModel = ({ objPath, mtlPath }) => {
-  const objRef = useRef();
-
-  // Load MTL and then OBJ
-  const materials = useLoader(MTLLoader, mtlPath);
-  const object = useLoader(OBJLoader, objPath, (loader) => {
-    materials.preload();
-    loader.setMaterials(materials);
-  });
+const BodyPartModel = ({ objPath }) => {
+  const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
-    if (objRef.current) {
-      objRef.current.add(object);
+    if (object) {
+      object.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new MeshNormalMaterial();
+        }
+      });
     }
   }, [object]);
 
-  return (
-    <group ref={objRef}>
-      <primitive object={object} />
-    </group>
-  );
+  return <primitive 
+    object={object}
+    scale={[0.1, 0.1, 0.1]} // Reduce size to fit the scene
+    position={[0, 0, 0]} // Center the model
+    />;
 };
 
 
@@ -88,8 +46,9 @@ const DrawingScreen = ({ navigation }) => {
   const [penType, setPenType] = useState('fine');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
+  const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
 
-    // Placeholder function for adding a body part
+    // Add a body part
     const handleImageSelect = (bodyPart) => {
       console.log(`Selected: ${bodyPart}`);
       setModalVisible(false); // Close the modal
@@ -98,33 +57,38 @@ const DrawingScreen = ({ navigation }) => {
       setSelectedModel(modelPath);
     };
 
-    // Helper function to return STL path based on selected body part
+    // Helper function to return path based on selected body part
     const getModelPath = (bodyPart) => {
       switch (bodyPart) {
         case 'head':
           return {
-            objPath: 'head.obj',
-            mtlPath: 'head.mtl'
+            objPath: 'head.obj'
       }; 
         case 'arm':
           return {
-            objPath: 'arm.obj',
-            mtlPath: 'arm.mtl'
+            objPath: 'arm.obj'
       };
         case 'leg':
           return {
-            objPath: 'leg.obj',
-            mtlPath: 'leg.mtl'
+            objPath: 'leg.obj'
       };
         case 'torso':
           return {
-            objPath: 'torso.obj',
-            mtlPath: 'torso.mtl'
+            objPath: 'torso.obj'
       };
         default:
           return null;
       }
     };
+
+    // Function to change body part (reset the selected model and open the modal)
+    const changeBodyPart = () => {
+      setModalVisible(true);
+      setSelectedModel(null); // Reset the current model
+    };
+
+    // Toggle grid visibility
+    const toggleGrid = () => setShowGrid((prev) => !prev);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -184,33 +148,27 @@ const DrawingScreen = ({ navigation }) => {
       </View>
 
       {/* Drawing Area */}
-      {/* <View style={styles.drawingContainer}>
-        <View style={styles.leftPanel}>
-          <View style={styles.bodyPartSelector}>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={styles.selectorText}>SELECT A BODY PART</Text>
-            </TouchableOpacity>
-          </View>
-        </View> */}
-
         <View style={styles.drawingContainer}>
         <View style={styles.leftPanel}>
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
-            <Canvas style={styles.canvas}>
+            <Canvas style={styles.canvas}
+            camera={{
+              position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
+              fov: 50, // Field of view (lower values zoom in, higher values zoom out)
+            }}
+            >
               <ambientLight />
               <pointLight position={[10, 10, 10]} />
-              <OrbitControls />
-              <Suspense fallback={null}>
-              <mesh>
-                <boxGeometry args={[1, 1, 1]} />
-                <meshStandardMaterial color="blue" />
-              </mesh>
-              
-              {/* <BodyPartModel 
-                mtlPath={selectedModel.mtlPath} 
+              <OrbitControls 
+                target={[0, 0, 0]}
+              />
+              {showGrid && <gridHelper args={[100, 100]} />}
+              <axesHelper args={[5]} />
+              <Suspense fallback={null}>             
+              <BodyPartModel 
                 objPath={selectedModel.objPath} 
-              /> */}
+              />
               </Suspense>
             </Canvas>
           ) : (
@@ -220,6 +178,24 @@ const DrawingScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Button to change body part */}
+          {selectedModel && (
+          <TouchableOpacity style={styles.toolButton} onPress={changeBodyPart}>
+            <Text style={styles.toolText}>Change Body Part</Text>
+          </TouchableOpacity>
+          )}
+
+          {/* Toggle button for grid */}
+          {selectedModel && (
+        <TouchableOpacity style={styles.toggleButton} onPress={toggleGrid}>
+          <Text style={styles.toggleButtonText}>
+            {showGrid ? 'Hide Grid' : 'Show Grid'}
+          </Text>
+        </TouchableOpacity>
+          )}
+
+
         </View>
 
 
@@ -413,6 +389,16 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 10,
     backgroundColor: '#E0E0E0',
+  },
+  toggleButton: {
+    backgroundColor: '#007BFF',
+    padding: 8,
+    borderRadius: 6,
+    marginLeft: 10
+  },
+  toggleButtonText: {
+    color: '#FFF',
+    fontSize: 18,
   },
 
 
