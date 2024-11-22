@@ -13,7 +13,7 @@ import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import DrawingCanvas from '../components/DrawingCanvas';
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
@@ -112,20 +112,23 @@ const DrawingScreen = ({ navigation }) => {
             style={styles.toolButton}
             onPress={() => canvasRef.current?.undoLastPath()}
           >
-          <MaterialIcons name="undo" size={24} color="white" />
-        </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.toolButton}>
+            <MaterialIcons name="undo" size={24} color="white" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.redoLastPath()}
+          >
             <MaterialIcons name="redo" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.centerTools}>
+        <View style={styles.rightTools}>
           <TouchableOpacity 
             style={[styles.toolButton, styles.eraserButton]}
             onPress={() => setSelectedTool('eraser')}
           >
-            <MaterialIcons name="edit" size={24} color="white" />
+            <MaterialCommunityIcons name="eraser" size={24} color="white" />
             <Text style={styles.toolText}>Eraser</Text>
           </TouchableOpacity>
 
@@ -133,13 +136,8 @@ const DrawingScreen = ({ navigation }) => {
             style={[styles.toolButton, styles.penButton]}
             onPress={() => setSelectedTool('pen')}
           >
-            <Text style={styles.toolText}>Fine Point</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.rightTools}>
-          <TouchableOpacity style={[styles.toolButton, styles.colorWheel]}>
-            <Text style={styles.toolText}>Color Wheel</Text>
+            <MaterialIcons name="draw" size={24} color="white" />
+            <Text style={styles.toolText}>Pen</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -205,7 +203,7 @@ const DrawingScreen = ({ navigation }) => {
 
         
         <View style={styles.rightPanel}>
-          <DrawingCanvas ref={canvasRef} />
+          <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
         </View>
       </View>
 
@@ -279,10 +277,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  centerTools: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   rightTools: {
     flexDirection: 'row',
     gap: 8,
@@ -301,9 +295,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   penButton: {
+    flexDirection: 'row',
+    gap: 8,
     paddingHorizontal: 16,
   },
   colorWheel: {
+    flexDirection: 'row',
+    gap: 8,
     paddingHorizontal: 16,
   },
   toolText: {
