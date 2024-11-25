@@ -1,6 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import html2canvas from 'html2canvas';
 
 const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
   const [paths, setPaths] = useState([]);
@@ -86,18 +87,48 @@ const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
             `;
 
             // Create a Blob with the SVG data
-            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+
+            // const blob = new Blob([svgData], { type: 'image/svg+xml' });
 
 
-            // Create a download link and trigger download
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'image.svg';
-            link.click();
-            console.log("Download triggered");
-        } catch (error) {
+            // Export as SVG
+
+            // const link = document.createElement('a');
+            // link.href = URL.createObjectURL(blob);
+            // link.download = 'image.svg';
+            // link.click();
+            // console.log("SVG Download triggered");
+
+            // Export as JPEG using html2canvas
+            // First, render the SVG onto the page inside a container
+            const svgContainer = document.createElement('div');
+            svgContainer.innerHTML = svgData;
+            document.body.appendChild(svgContainer);
+
+            // Wait for the SVG to be rendered, then use html2canvas
+            const jpegDataUrl = await new Promise((resolve, reject) => {
+              html2canvas(svgContainer).then((canvas) => {
+                const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                resolve(jpegDataUrl);
+
+                // Create a download link for the JPEG image
+                const jpegLink = document.createElement('a');
+                jpegLink.href = jpegDataUrl;
+                jpegLink.download = 'image.jpeg';
+                jpegLink.click();
+                console.log("JPEG Download triggered");
+                // Clean up the temporary SVG container
+                document.body.removeChild(svgContainer);
+              }).catch(reject);
+            });
+
+            console.log("JPEG image generated");
+            return jpegDataUrl; // Return JPEG data URL
+
+            } catch (error) {
             console.error('Error exporting image:', error);
             alert('Failed to export image. Please try again.');
+            return null;
         }
     };
     

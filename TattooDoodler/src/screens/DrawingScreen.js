@@ -69,25 +69,26 @@ const DrawingScreen = ({ navigation }) => {
   const [selectedTexture, setSelectedTexture] = useState(null);
 
   // Generate texture on demand
-  const applyDrawingToTexture = () => {
-    const canvas = canvasRef.current?.exportImage();
-    if (!canvas) {
+  const applyDrawingToTexture = async () => {
+    const tattoo = await canvasRef.current?.exportImage();
+    if (!tattoo) {
       console.warn('No drawing found to export!');
       return;
     }
-
-    // need to fix this so it actually works with canvas -> convert canvas to png? 
-    const texture = new THREE.TextureLoader().load(
-      "https://png.pngtree.com/png-clipart/20191120/original/pngtree-anchor-tattoo-illustration-png-image_5056546.jpg"
-    );
-    texture.needsUpdate = true;
-    console.log("new texture")
-    setSelectedTexture(texture);
-    console.log("new texture selected")
+    try{
+      // need to fix this so it actually works with tattoo -> convert canvas to png? 
+      const texture = new THREE.TextureLoader().load(
+        tattoo
+        // "https://png.pngtree.com/png-clipart/20191120/original/pngtree-anchor-tattoo-illustration-png-image_5056546.jpg"
+      );
+      texture.needsUpdate = true;
+      console.log("New texture created");
+      setSelectedTexture(texture);
+      console.log("New texture selected");
+    }catch (error){
+      console.error('Error loading texture:', error);
+    }
   };
-  
-  
-
 
     // Add a body part
     const handleImageSelect = (bodyPart) => {
