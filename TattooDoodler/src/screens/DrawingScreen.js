@@ -22,9 +22,10 @@ import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
+import Slider from '@react-native-community/slider';
 
 
-const BodyPartModel = ({ objPath, texture }) => {
+const BodyPartModel = ({ objPath, texture, scale,}) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -34,19 +35,17 @@ const BodyPartModel = ({ objPath, texture }) => {
           console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
           console.log('UV Attributes array:', child.geometry.attributes.uv.array);
           if (texture) {
-            child.material.needsUpdate = true;
             child.material.map = texture; // Apply texture
-            child.material.map.repeat.set(0.5, 0.5); // Adjust repeat values for scaling
-            child.material.map.wrapS = THREE.RepeatWrapping;
-            child.material.map.wrapT = THREE.RepeatWrapping;
             console.log('Applying texture:', texture);
+            child.material.map.repeat.set(scale.x, scale.y);
+            child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshBasicMaterial(); // Default material
           }
         }
       });
     }
-  }, [object, texture]);
+  }, [object, texture, scale]);
 
   return <primitive
     object={object}
@@ -67,6 +66,8 @@ const DrawingScreen = ({ navigation }) => {
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
   const [selectedTexture, setSelectedTexture] = useState(null);
+  const [scale, setScale] = useState({ x: 1.0, y: 1.0 });
+  const [offset, setOffset] = useState({ x: 0.0, y: 0.0 });
 
   // Generate texture on demand
   const applyDrawingToTexture = async () => {
@@ -215,6 +216,7 @@ const DrawingScreen = ({ navigation }) => {
               <BodyPartModel 
                 objPath={selectedModel.objPath}
                 texture={selectedTexture}
+                scale={scale}
               />
               </Suspense>
             </Canvas>
@@ -241,6 +243,23 @@ const DrawingScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
           )}
+          <View>
+          <Text>Scale X</Text>
+          <Slider 
+            minimumValue={0.1} 
+            maximumValue={10.0} 
+            value={scale.x} 
+            onValueChange={(value) => setScale((prev) => ({ ...prev, x: value }))} 
+          />
+          <Text>Scale Y</Text>
+          <Slider 
+            minimumValue={0.1} 
+            maximumValue={10.0} 
+            value={scale.y} 
+            onValueChange={(value) => setScale((prev) => ({ ...prev, y: value }))} 
+          />
+        </View>
+
 
 
         </View>
