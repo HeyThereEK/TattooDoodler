@@ -24,20 +24,31 @@ extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
 
 
-const BodyPartModel = ({ objPath }) => {
+const BodyPartModel = ({ objPath, texture }) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
     if (object) {
       object.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new MeshNormalMaterial();
+        if (child.isMesh && child.geometry) {
+          console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
+          console.log('UV Attributes array:', child.geometry.attributes.uv.array);
+          if (texture) {
+            child.material.needsUpdate = true;
+            child.material.map = texture; // Apply texture
+            child.material.map.repeat.set(0.5, 0.5); // Adjust repeat values for scaling
+            child.material.map.wrapS = THREE.RepeatWrapping;
+            child.material.map.wrapT = THREE.RepeatWrapping;
+            console.log('Applying texture:', texture);
+          } else {
+            child.material = new THREE.MeshBasicMaterial(); // Default material
+          }
         }
       });
     }
-  }, [object]);
+  }, [object, texture]);
 
-  return <primitive 
+  return <primitive
     object={object}
     scale={[0.1, 0.1, 0.1]} // Reduce size to fit the scene
     position={[0, 0, 0]} // Center the model
@@ -55,6 +66,28 @@ const DrawingScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
+  const [selectedTexture, setSelectedTexture] = useState(null);
+
+  // Generate texture on demand
+  const applyDrawingToTexture = () => {
+    const canvas = canvasRef.current?.exportImage();
+    if (!canvas) {
+      console.warn('No drawing found to export!');
+      return;
+    }
+
+    // need to fix this so it actually works with canvas -> convert canvas to png? 
+    const texture = new THREE.TextureLoader().load(
+      "https://png.pngtree.com/png-clipart/20191120/original/pngtree-anchor-tattoo-illustration-png-image_5056546.jpg"
+    );
+    texture.needsUpdate = true;
+    console.log("new texture")
+    setSelectedTexture(texture);
+    console.log("new texture selected")
+  };
+  
+  
+
 
     // Add a body part
     const handleImageSelect = (bodyPart) => {
@@ -62,7 +95,7 @@ const DrawingScreen = ({ navigation }) => {
       setModalVisible(false); // Close the modal
       // Set the selected 3D model file
       const modelPath = getModelPath(bodyPart);
-      setSelectedModel(modelPath);
+      setSelectedModel(modelPath,);
     };
 
     // Helper function to return path based on selected body part
@@ -163,7 +196,8 @@ const DrawingScreen = ({ navigation }) => {
         <View style={styles.leftPanel}>
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
-            <Canvas style={styles.canvas}
+            <Canvas 
+            style={styles.canvas}
             camera={{
               position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
               fov: 50, // Field of view (lower values zoom in, higher values zoom out)
@@ -178,7 +212,8 @@ const DrawingScreen = ({ navigation }) => {
               <axesHelper args={[5]} />
               <Suspense fallback={null}>             
               <BodyPartModel 
-                objPath={selectedModel.objPath} 
+                objPath={selectedModel.objPath}
+                texture={selectedTexture}
               />
               </Suspense>
             </Canvas>
@@ -213,6 +248,10 @@ const DrawingScreen = ({ navigation }) => {
         
         <View style={styles.rightPanel}>
           <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
+
+          <TouchableOpacity style={styles.toolButton} onPress={applyDrawingToTexture}>
+          <Text style={styles.toolText}>Apply Tattoo</Text>
+          </TouchableOpacity>
         </View>
       </View>
 

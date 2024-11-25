@@ -1,4 +1,4 @@
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
@@ -6,6 +6,7 @@ const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
+  const svgRef = useRef(null);
 
   const getCoordinates = (event) => {
     if (event.nativeEvent.touches && event.nativeEvent.touches.length > 0) {
@@ -68,8 +69,42 @@ const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
     setPaths((prevPaths) => prevPaths.slice(0, -1));
   };
 
+  const exportImage = async () => {
+    try {
+            console.log("Export image triggered");
+            const svg = svgRef.current;
+    
+            if (!svg) {
+                throw new Error("SVG reference is not available.");
+            }
+            // Serialize the SVG to a string
+            const svgData = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+                ${paths.map(path => `<path d="${path}" stroke="black" stroke-width="2" fill="none"/>`).join('')}
+                ${currentPath && `<path d="${currentPath}" stroke="black" stroke-width="2" fill="none"/>`}
+              </svg>
+            `;
+
+            // Create a Blob with the SVG data
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+
+
+            // Create a download link and trigger download
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'image.svg';
+            link.click();
+            console.log("Download triggered");
+        } catch (error) {
+            console.error('Error exporting image:', error);
+            alert('Failed to export image. Please try again.');
+        }
+    };
+    
+
     useImperativeHandle(ref, () => ({
     undoLastPath,
+    exportImage
   }));
 
   return (
@@ -82,7 +117,7 @@ const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
       onMouseMove={handleMove}
       onMouseUp={handleEnd}
     >
-      <Svg style={styles.svg}>
+      <Svg ref = {svgRef} style={styles.svg}>
         {paths.map((path, index) => (
           <Path key={index} d={path} stroke="black" strokeWidth={2} fill="none" />
         ))}
@@ -94,6 +129,11 @@ const DrawingCanvas = forwardRef(({ selectedTool }, ref) => {
         <TouchableOpacity style={styles.clearButton} onPress={clearCanvas}>
           <Text style={styles.clearButtonText}>Clear</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.exportButton} onPress={exportImage}>
+        <Text style={styles.exportButtonText}>Export Image</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -125,6 +165,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
+  exportButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+},
+exportButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+},
+
 });
 
 export default DrawingCanvas;
