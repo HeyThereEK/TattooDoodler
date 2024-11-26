@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Modal,
   Image,
+  PanResponder
 } from 'react-native';
 import { useFonts } from "expo-font";
 import { Canvas } from '@react-three/fiber';
@@ -25,7 +26,7 @@ import { MeshNormalMaterial } from 'three';
 import Slider from '@react-native-community/slider';
 
 
-const BodyPartModel = ({ objPath, texture, scale,}) => {
+const BodyPartModel = ({ objPath, texture, scale}) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -37,7 +38,12 @@ const BodyPartModel = ({ objPath, texture, scale,}) => {
           if (texture) {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
-            child.material.map.repeat.set(scale.x, scale.y);
+            texture.center.set(0.5,0.5);
+            texture.rotation = 0
+            texture.repeat.set(scale.x, scale.y);
+            // texture.offset.set(offset.x, offset.y)
+            // texture.wrapS = THREE.RepeatWrapping; // Allows horizontal wrapping.
+            // texture.wrapT = THREE.RepeatWrapping; // Allows vertical wrapping.
             child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshBasicMaterial(); // Default material
@@ -194,7 +200,9 @@ const DrawingScreen = ({ navigation }) => {
       </View>
 
       {/* Drawing Area */}
-        <View style={styles.drawingContainer}>
+        <View 
+          style={styles.drawingContainer}
+        >
         <View style={styles.leftPanel}>
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
@@ -217,6 +225,7 @@ const DrawingScreen = ({ navigation }) => {
                 objPath={selectedModel.objPath}
                 texture={selectedTexture}
                 scale={scale}
+                // offset={offset}
               />
               </Suspense>
             </Canvas>
@@ -244,19 +253,17 @@ const DrawingScreen = ({ navigation }) => {
         </TouchableOpacity>
           )}
           <View>
-          <Text>Scale X</Text>
-          <Slider 
-            minimumValue={0.1} 
-            maximumValue={10.0} 
-            value={scale.x} 
-            onValueChange={(value) => setScale((prev) => ({ ...prev, x: value }))} 
-          />
-          <Text>Scale Y</Text>
-          <Slider 
-            minimumValue={0.1} 
-            maximumValue={10.0} 
-            value={scale.y} 
-            onValueChange={(value) => setScale((prev) => ({ ...prev, y: value }))} 
+          <Text>Scale</Text>
+          <Slider
+            style={{width: 300}}
+            minimumValue={0.01} 
+            maximumValue={3.0}
+            step={0.1}
+            value={1 / scale.x} 
+            onValueChange={(value) => {
+              const invertedScale = 1 / value;
+              setScale( { x: invertedScale, y: invertedScale });
+            }} 
           />
         </View>
 
