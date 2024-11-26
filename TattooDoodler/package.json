@@ -32,6 +32,7 @@
     "font": "^0.0.4",
     "html2canvas": "^1.4.1",
     "metro": "^0.81.0",
+    "re-resizable": "^6.10.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.2",
@@ -45,6 +46,7 @@
     "react-native-svg": "15.8.0",
     "react-native-web": "~0.19.13",
     "react-native-webgl": "^0.8.0",
+    "react-resizable": "^3.0.5",
     "regenerator-runtime": "^0.14.1",
     "three": "^0.170.0"
   },

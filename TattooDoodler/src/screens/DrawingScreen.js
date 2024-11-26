@@ -23,10 +23,11 @@ import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
-import Slider from '@react-native-community/slider';
+import { ResizableBox } from 'react-resizable';
+import 'react-resizable/css/styles.css'; // Required for styling the resizable box
 
 
-const BodyPartModel = ({ objPath, texture, scale}) => {
+const BodyPartModel = ({ objPath, texture, boundingBox}) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -40,8 +41,18 @@ const BodyPartModel = ({ objPath, texture, scale}) => {
             console.log('Applying texture:', texture);
             texture.center.set(0.5,0.5);
             texture.rotation = 0
-            texture.repeat.set(scale.x, scale.y);
-            // texture.offset.set(offset.x, offset.y)
+
+              // Calculate new texture offset and repeat based on bounding box
+            const textureOffsetX = boundingBox.x;
+            const textureOffsetY = boundingBox.y; 
+
+            const textureRepeatX = 100 / boundingBox.width; 
+            const textureRepeatY = 100 / boundingBox.height; 
+
+            texture.offset.set(textureOffsetX, textureOffsetY);
+            console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
+            texture.repeat.set(textureRepeatX, textureRepeatY);
+            console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
             // texture.wrapS = THREE.RepeatWrapping; // Allows horizontal wrapping.
             // texture.wrapT = THREE.RepeatWrapping; // Allows vertical wrapping.
             child.material.needsUpdate = true;
@@ -51,7 +62,7 @@ const BodyPartModel = ({ objPath, texture, scale}) => {
         }
       });
     }
-  }, [object, texture, scale]);
+  }, [object, texture, boundingBox]);
 
   return <primitive
     object={object}
@@ -72,8 +83,23 @@ const DrawingScreen = ({ navigation }) => {
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
   const [selectedTexture, setSelectedTexture] = useState(null);
-  const [scale, setScale] = useState({ x: 1.0, y: 1.0 });
-  const [offset, setOffset] = useState({ x: 0.0, y: 0.0 });
+
+  const [boundingBox, setBoundingBox] = useState({
+    x: 0, // initial X position
+    y: 0, // initial Y position
+    width: 100, // initial width
+    height: 100, // initial height
+  });
+
+  const handleResize = (e, data) => {
+    setBoundingBox({
+      x: boundingBox.x,
+      y: boundingBox.y,
+      width: data.size.width,
+      height: data.size.height,
+    });
+  };
+  
 
   // Generate texture on demand
   const applyDrawingToTexture = async () => {
@@ -83,10 +109,8 @@ const DrawingScreen = ({ navigation }) => {
       return;
     }
     try{
-      // need to fix this so it actually works with tattoo -> convert canvas to png? 
       const texture = new THREE.TextureLoader().load(
         tattoo
-        // "https://png.pngtree.com/png-clipart/20191120/original/pngtree-anchor-tattoo-illustration-png-image_5056546.jpg"
       );
       texture.needsUpdate = true;
       console.log("New texture created");
@@ -203,7 +227,9 @@ const DrawingScreen = ({ navigation }) => {
         <View 
           style={styles.drawingContainer}
         >
-        <View style={styles.leftPanel}>
+        <View 
+        style={styles.leftPanel}
+        >
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
             <Canvas 
@@ -224,8 +250,7 @@ const DrawingScreen = ({ navigation }) => {
               <BodyPartModel 
                 objPath={selectedModel.objPath}
                 texture={selectedTexture}
-                scale={scale}
-                // offset={offset}
+                boundingBox={boundingBox}
               />
               </Suspense>
             </Canvas>
@@ -252,23 +277,23 @@ const DrawingScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
           )}
-          <View>
-          <Text>Scale</Text>
-          <Slider
-            style={{width: 300}}
-            minimumValue={0.01} 
-            maximumValue={3.0}
-            step={0.1}
-            value={1 / scale.x} 
-            onValueChange={(value) => {
-              const invertedScale = 1 / value;
-              setScale( { x: invertedScale, y: invertedScale });
-            }} 
+          {/* Resizeable bounding box */}
+          <ResizableBox
+            width={boundingBox.width}
+            height={boundingBox.height}
+            minConstraints={[1, 1]}
+            maxConstraints={[356, 616]}
+            onResizeStop={handleResize}
+            style={{
+              position: 'absolute',
+              top: boundingBox.y,
+              left: boundingBox.x,
+              borderWidth: 5,
+              borderColor: 'white',
+              borderStyle: 'solid',
+              backgroundColor: 'transparent',
+            }}
           />
-        </View>
-
-
-
         </View>
 
 
