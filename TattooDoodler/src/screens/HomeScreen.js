@@ -8,6 +8,8 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import { useFonts } from "expo-font";
+import {Bokor} from "@expo-google-fonts/bokor";
 
 const DrawingAppPreview = ({ navigation }) => {  // Add navigation prop
   const drawings = [
@@ -18,6 +20,10 @@ const DrawingAppPreview = ({ navigation }) => {  // Add navigation prop
   const spacing = 16;
   const numColumns = 3;
   const cardWidth = (screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns;
+
+  const [fontsLoaded] = useFonts({
+    Bokor,
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,18 +63,19 @@ const DrawingAppPreview = ({ navigation }) => {  // Add navigation prop
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#2c2c2c',
   },
   header: {
     padding: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#232324',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#232324',
   },
   headerText: {
     fontSize: 28,
+    fontFamily: 'Bokor',
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#afafaf',
   },
   scrollView: {
     flex: 1,
@@ -81,10 +88,10 @@ const styles = StyleSheet.create({
   },
   newDrawingButton: {
     aspectRatio: 3/4,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#3d3d3d',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: '#565656',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
