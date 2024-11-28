@@ -46,14 +46,17 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
             console.log("texture center", texture.center)
             texture.rotation = 0
             // Calculate new texture offset and repeat based on bounding box
-            // const textureOffsetX = boundingBox.x;
-            // const textureOffsetY = boundingBox.y; 
+            const textureOffsetX = boundingBox.x / boundingBox.width - 0.5;
+            const textureOffsetY = boundingBox.y / boundingBox.height - 0.5; 
 
             const textureRepeatX = 100 / boundingBox.width; 
             const textureRepeatY = 100 / boundingBox.height; 
 
-            // texture.offset.set(textureOffsetX, textureOffsetY);
-            // console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
+            texture.offset.set(
+              THREE.MathUtils.clamp(textureOffsetX, -1, 1),
+              THREE.MathUtils.clamp(textureOffsetY, -1, 1)
+            );
+            console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
             child.material.needsUpdate = true;
@@ -110,14 +113,6 @@ const DrawingScreen = ({ navigation }) => {
       console.log("New texture created");
       setSelectedTexture(texture);
       console.log("New texture selected");
-      // Set initial bounding box to match the texture's size and center position
-      // setBoundingBox({
-      //   x: texture.centerX,
-      //   y: texture.centerY,
-      //   width: texture.width,
-      //   height: texture.height,
-      // });
-      console.log("set bounding box at texture center and size")
     }catch (error){
       console.error('Error loading texture:', error);
     }
@@ -304,7 +299,7 @@ const DrawingScreen = ({ navigation }) => {
             height={boundingBox.height}
             minConstraints={[1, 1]}
             maxConstraints={[356, 616]}
-            onResizeStart={handleResize}
+            onResizeStop={handleResize}
             style={{
               position: 'absolute',
               top: boundingBox.y,
