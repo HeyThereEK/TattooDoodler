@@ -25,6 +25,7 @@ extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
+import Draggable from 'react-draggable';
 
 
 const BodyPartModel = ({ objPath, texture, boundingBox}) => {
@@ -36,25 +37,25 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
         if (child.isMesh && child.geometry) {
           console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
           console.log('UV Attributes array:', child.geometry.attributes.uv.array);
+          const uvArray = child.geometry.attributes.uv.array;
           if (texture) {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
+            console.log(child.geometry.attributes.position);
             texture.center.set(0.5,0.5);
+            console.log("texture center", texture.center)
             texture.rotation = 0
-
-              // Calculate new texture offset and repeat based on bounding box
-            const textureOffsetX = boundingBox.x;
-            const textureOffsetY = boundingBox.y; 
+            // Calculate new texture offset and repeat based on bounding box
+            // const textureOffsetX = boundingBox.x;
+            // const textureOffsetY = boundingBox.y; 
 
             const textureRepeatX = 100 / boundingBox.width; 
             const textureRepeatY = 100 / boundingBox.height; 
 
-            texture.offset.set(textureOffsetX, textureOffsetY);
-            console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
+            // texture.offset.set(textureOffsetX, textureOffsetY);
+            // console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
-            // texture.wrapS = THREE.RepeatWrapping; // Allows horizontal wrapping.
-            // texture.wrapT = THREE.RepeatWrapping; // Allows vertical wrapping.
             child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshBasicMaterial(); // Default material
@@ -83,13 +84,7 @@ const DrawingScreen = ({ navigation }) => {
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
   const [selectedTexture, setSelectedTexture] = useState(null);
-
-  const [boundingBox, setBoundingBox] = useState({
-    x: 0, // initial X position
-    y: 0, // initial Y position
-    width: 100, // initial width
-    height: 100, // initial height
-  });
+  const [boundingBox, setBoundingBox] = useState({x:0, y: 0, width: 100, height: 100});
 
   const handleResize = (e, data) => {
     setBoundingBox({
@@ -99,7 +94,6 @@ const DrawingScreen = ({ navigation }) => {
       height: data.size.height,
     });
   };
-  
 
   // Generate texture on demand
   const applyDrawingToTexture = async () => {
@@ -116,6 +110,14 @@ const DrawingScreen = ({ navigation }) => {
       console.log("New texture created");
       setSelectedTexture(texture);
       console.log("New texture selected");
+      // Set initial bounding box to match the texture's size and center position
+      // setBoundingBox({
+      //   x: texture.centerX,
+      //   y: texture.centerY,
+      //   width: texture.width,
+      //   height: texture.height,
+      // });
+      console.log("set bounding box at texture center and size")
     }catch (error){
       console.error('Error loading texture:', error);
     }
@@ -278,12 +280,31 @@ const DrawingScreen = ({ navigation }) => {
         </TouchableOpacity>
           )}
           {/* Resizeable bounding box */}
+          <Draggable
+            bounds={{
+              left: 0,
+              top: 0,
+              right: 400 - boundingBox.width, // Adjust based on parent width and box width
+              bottom: 650 - boundingBox.height, // Adjust based on parent height and box height
+            }}
+            position={{ x: boundingBox.x, y: boundingBox.y }}
+            onDrag={(e, data) => {
+              setBoundingBox((prev) => ({
+                ...prev,
+                x: data.x,
+                y: data.y,
+              }));
+            }}
+            onStop={(e, data) => {
+              console.log(`Dragged to: ${data.x}, ${data.y}`);
+            }}
+          >
           <ResizableBox
             width={boundingBox.width}
             height={boundingBox.height}
             minConstraints={[1, 1]}
             maxConstraints={[356, 616]}
-            onResizeStop={handleResize}
+            onResizeStart={handleResize}
             style={{
               position: 'absolute',
               top: boundingBox.y,
@@ -294,6 +315,7 @@ const DrawingScreen = ({ navigation }) => {
               backgroundColor: 'transparent',
             }}
           />
+          </Draggable>
         </View>
 
 
