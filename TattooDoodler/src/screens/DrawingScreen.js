@@ -8,14 +8,15 @@ import {
   SafeAreaView,
   Modal,
   Image,
-  PanResponder
+  PanResponder,
+  Pressable,
 } from 'react-native';
 import { useFonts } from "expo-font";
 import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web'
 import {TitilliumWeb_300Light} from '@expo-google-fonts/titillium-web'
 import DrawingCanvas from '../components/DrawingCanvas';
@@ -72,6 +73,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
 };
 
 const DrawingScreen = ({ navigation }) => {
+  console.log('DrawingScreen rendered');
   const [selectedTool, setSelectedTool] = useState('pen');
   const [penType, setPenType] = useState('fine');
   const [fontsLoaded] = useFonts({
@@ -83,6 +85,7 @@ const DrawingScreen = ({ navigation }) => {
   const [selectedModel, setSelectedModel] = useState(null); // To hold the path of selected 3D model
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
   const [selectedTexture, setSelectedTexture] = useState(null);
+  const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
 
   const [boundingBox, setBoundingBox] = useState({
     x: 0, // initial X position
@@ -100,6 +103,7 @@ const DrawingScreen = ({ navigation }) => {
     });
   };
   
+  const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
   // Generate texture on demand
   const applyDrawingToTexture = async () => {
@@ -167,32 +171,60 @@ const DrawingScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Toolbar */}
       <View style={styles.toolbar}>
-        <View style={styles.leftTools}>
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="file-download" size={24} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="file-upload" size={24} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="save" size={24} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.toolButton}
-            onPress={() => canvasRef.current?.undoLastPath()}
-          >
-          <MaterialIcons name="undo" size={24} color="white" />
-        </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.toolButton}>
-            <MaterialIcons name="redo" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+      
+      <View style={styles.leftTools}>
+  <View style={styles.dropdownContainer}>
+    <TouchableOpacity style={styles.toolButton} onPress={toggleDropdown}>
+      <MaterialCommunityIcons name="chevron-down-circle-outline" size={24} color="white" />
+    </TouchableOpacity>
 
-        <View style={styles.centerTools}>
+    {dropdownVisible && (
+      <View style={styles.dropdown}>
+        <Pressable
+          style={({ hovered }) => [
+            styles.dropdownButton,
+            hovered && styles.dropdownButtonHovered,
+          ]}
+        >
+          <MaterialIcons name="file-download" size={24} color="white" />
+          <Text style={styles.dropdownButtonText}>Download</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ hovered }) => [
+            styles.dropdownButton,
+            hovered && styles.dropdownButtonHovered,
+          ]}
+        >
+          <MaterialIcons name="file-upload" size={24} color="white" />
+          <Text style={styles.dropdownButtonText}>Upload</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ hovered }) => [
+            styles.dropdownButton,
+            hovered && styles.dropdownButtonHovered,
+          ]}
+        >
+          <MaterialIcons name="save" size={24} color="white" />
+          <Text style={styles.dropdownButtonText}>Save</Text>
+        </Pressable>
+      </View>
+    )}
+  </View>
+
+  <TouchableOpacity
+    style={styles.toolButton}
+    onPress={() => canvasRef.current?.undoLastPath()}
+  >
+    <MaterialIcons name="undo" size={24} color="white" />
+  </TouchableOpacity>
+
+  <TouchableOpacity style={styles.toolButton}>
+    <MaterialIcons name="redo" size={24} color="white" />
+  </TouchableOpacity>
+</View>
+        {/* <View style={styles.centerTools}>
           <TouchableOpacity 
             style={[styles.toolButton, styles.eraserButton]}
             onPress={() => setSelectedTool('eraser')}
@@ -207,12 +239,28 @@ const DrawingScreen = ({ navigation }) => {
           >
             <Text style={styles.toolText}>Fine Point</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <View style={styles.rightTools}>
-          <TouchableOpacity style={[styles.toolButton, styles.colorWheel]}>
-            <Text style={styles.toolText}>Color Wheel</Text>
+          <TouchableOpacity 
+            style={[styles.toolButton, styles.eraserButton]}
+            onPress={() => setSelectedTool('eraser')}
+          >
+            <MaterialCommunityIcons name="eraser" size={24} color="white" />
+            <Text style={styles.toolText}>Eraser</Text>
           </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.toolButton, styles.penButton]}
+            onPress={() => setSelectedTool('pen')}
+          >
+            <MaterialIcons name="draw" size={24} color="white" />
+            <Text style={styles.toolText}>Pen</Text>
+          </TouchableOpacity>
+
+          {/* <TouchableOpacity style={[styles.toolButton, styles.colorWheel]}>
+            <Text style={styles.toolText}>Color Wheel</Text>
+          </TouchableOpacity> */}
 
           <TouchableOpacity 
             style={styles.toolButton}
@@ -372,15 +420,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#3d3d3d',
     height: 80,
     marginTop: 40, // Add space for the back button
+    zIndex: 10,
   },
   leftTools: {
     flexDirection: 'row',
     gap: 8,
   },
-  centerTools: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  // centerTools: {
+  //   flexDirection: 'row',
+  //   gap: 8,
+  // },
   rightTools: {
     flexDirection: 'row',
     gap: 8,
@@ -402,9 +451,13 @@ const styles = StyleSheet.create({
   },
   penButton: {
     paddingHorizontal: 16,
+    gap: 8,
+    flexDirection: 'row',
   },
   colorWheel: {
     paddingHorizontal: 16,
+    gap: 8,
+    flexDirection: 'row',
   },
   toolText: {
     color: '#FFFFFF',
@@ -514,8 +567,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'TitilliumWeb_300Light',
   },
-
-
+  dropdownContainer: {
+    position: 'relative',
+  },
+  dropdown: {
+    position: 'absolute',
+    top: 48, // Adjust this value to position the dropdown correctly
+    left: 0,
+    backgroundColor: '#707070',
+    borderRadius: 8,
+    padding: 8,
+    zIndex: 10,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  dropdownButtonHovered: {
+    backgroundColor: '#505050', // Change this to your desired hover color
+  },
+  dropdownButtonText: {
+    color: 'white',
+    marginLeft: 8,
+  },
 });
 
 export default DrawingScreen; BodyPartModel

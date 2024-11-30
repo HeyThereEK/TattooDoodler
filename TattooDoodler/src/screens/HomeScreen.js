@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,10 @@ import { useFonts } from "expo-font";
 import { Bokor_400Regular } from "@expo-google-fonts/bokor";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoadingScreen from './LoadingScreen';
-import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web'
-import {TitilliumWeb_300Light} from '@expo-google-fonts/titillium-web'
+import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web';
+import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web';
 
-const DrawingAppPreview = ({ navigation }) => { 
+const HomeScreen = ({ navigation }) => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [fontsLoaded] = useFonts({
     Bokor_400Regular,
@@ -70,7 +70,7 @@ const DrawingAppPreview = ({ navigation }) => {
 
   return (
     <>
-      <StatusBar barStyle={'light-content'}/>
+      <StatusBar barStyle={'light-content'} />
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
           <Text style={styles.headerText}>My Drawings</Text>
@@ -78,17 +78,20 @@ const DrawingAppPreview = ({ navigation }) => {
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.gridContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.newDrawingButton, { width: cardWidth }]}
-              onPress={() => navigation.navigate('Drawing')}  // Add navigation
+              onPress={() => {
+                console.log('Navigating to DrawingScreen'); // Debugging log
+                navigation.navigate('Drawing');
+              }}
             >
               <Text style={styles.plusSign}>+</Text>
               <Text style={styles.newDrawingText}>New Drawing</Text>
             </TouchableOpacity>
 
             {drawings.map((drawing) => (
-              <TouchableOpacity 
-                key={drawing.id} 
+              <TouchableOpacity
+                key={drawing.id}
                 style={[styles.drawingCard, { width: cardWidth }]}
                 onPress={() => navigation.navigate('Drawing')}  // Add navigation
               >
@@ -101,8 +104,8 @@ const DrawingAppPreview = ({ navigation }) => {
             ))}
           </View>
         </ScrollView>
-        </SafeAreaView>
-      </>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 32,
-    // fontWeight: 'bold',
     fontFamily: 'Bokor_400Regular',
     color: '#afafaf',
   },
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   newDrawingButton: {
-    aspectRatio: 3/4,
+    aspectRatio: 3 / 4,
     backgroundColor: '#3d3d3d',
     borderRadius: 12,
     borderWidth: 2,
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
     fontFamily: 'TitilliumWeb_300Light',
   },
   drawingCard: {
-    aspectRatio: 3/4,
+    aspectRatio: 3 / 4,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
@@ -194,4 +196,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DrawingAppPreview;
+export default HomeScreen;
