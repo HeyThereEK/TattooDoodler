@@ -36,6 +36,7 @@
     "re-resizable": "^6.10.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-draggable": "^4.4.6",
     "react-native": "0.76.2",
     "react-native-3d-model-view": "^1.2.0",
     "react-native-fs": "^2.20.0",

@@ -26,6 +26,7 @@ extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
+import Draggable from 'react-draggable';
 
 
 const BodyPartModel = ({ objPath, texture, boundingBox}) => {
@@ -37,25 +38,28 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
         if (child.isMesh && child.geometry) {
           console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
           console.log('UV Attributes array:', child.geometry.attributes.uv.array);
+          const uvArray = child.geometry.attributes.uv.array;
           if (texture) {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
+            console.log(child.geometry.attributes.position);
             texture.center.set(0.5,0.5);
+            console.log("texture center", texture.center)
             texture.rotation = 0
-
-              // Calculate new texture offset and repeat based on bounding box
-            const textureOffsetX = boundingBox.x;
-            const textureOffsetY = boundingBox.y; 
+            // Calculate new texture offset and repeat based on bounding box
+            const textureOffsetX = boundingBox.x / boundingBox.width - 0.5;
+            const textureOffsetY = boundingBox.y / boundingBox.height - 0.5; 
 
             const textureRepeatX = 100 / boundingBox.width; 
             const textureRepeatY = 100 / boundingBox.height; 
 
-            texture.offset.set(textureOffsetX, textureOffsetY);
+            texture.offset.set(
+              THREE.MathUtils.clamp(textureOffsetX, -1, 1),
+              THREE.MathUtils.clamp(textureOffsetY, -1, 1)
+            );
             console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
-            // texture.wrapS = THREE.RepeatWrapping; // Allows horizontal wrapping.
-            // texture.wrapT = THREE.RepeatWrapping; // Allows vertical wrapping.
             child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshBasicMaterial(); // Default material
@@ -326,6 +330,25 @@ const DrawingScreen = ({ navigation }) => {
         </TouchableOpacity>
           )}
           {/* Resizeable bounding box */}
+          <Draggable
+            bounds={{
+              left: 0,
+              top: 0,
+              right: 400 - boundingBox.width, // Adjust based on parent width and box width
+              bottom: 650 - boundingBox.height, // Adjust based on parent height and box height
+            }}
+            position={{ x: boundingBox.x, y: boundingBox.y }}
+            onDrag={(e, data) => {
+              setBoundingBox((prev) => ({
+                ...prev,
+                x: data.x,
+                y: data.y,
+              }));
+            }}
+            onStop={(e, data) => {
+              console.log(`Dragged to: ${data.x}, ${data.y}`);
+            }}
+          >
           <ResizableBox
             width={boundingBox.width}
             height={boundingBox.height}
@@ -342,6 +365,7 @@ const DrawingScreen = ({ navigation }) => {
               backgroundColor: 'transparent',
             }}
           />
+          </Draggable>
         </View>
 
 
