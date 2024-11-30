@@ -19,6 +19,7 @@ import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web';
 
 const HomeScreen = ({ navigation }) => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // State to manage loading screen visibility
   const [fontsLoaded] = useFonts({
     Bokor_400Regular,
     TitilliumWeb_200ExtraLight,
@@ -53,8 +54,14 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [isFirstLaunch]);
 
-  if (isFirstLaunch === null || !fontsLoaded) {
-    return <Text>Loading fonts...</Text>;
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show the loading screen for 2 seconds
+  }, []);
+
+  if (isLoading || isFirstLaunch === null || !fontsLoaded) {
+    return <LoadingScreen opacity={opacity} />;
   }
 
   const drawings = [];
@@ -63,10 +70,6 @@ const HomeScreen = ({ navigation }) => {
   const spacing = 16;
   const numColumns = 3;
   const cardWidth = (screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns;
-
-  if (isFirstLaunch) {
-    return <LoadingScreen opacity={opacity} />;
-  }
 
   return (
     <>

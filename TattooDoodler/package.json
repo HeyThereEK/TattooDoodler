@@ -11,6 +11,7 @@
   "dependencies": {
     "@expo-google-fonts/bokor": "^0.2.3",
     "@expo-google-fonts/bungee-shade": "^0.2.3",
+    "@expo-google-fonts/gloria-hallelujah": "^0.2.3",
     "@expo-google-fonts/titillium-web": "^0.2.3",
     "@expo/metro-runtime": "~4.0.0",
     "@react-native-async-storage/async-storage": "^2.1.0",
@@ -66,9 +67,24 @@
       "@babel/preset-react"
     ],
     "plugins": [
-      ["@babel/plugin-transform-class-properties", { "loose": true }],
-      ["@babel/plugin-transform-private-methods", { "loose": true }],
-      ["@babel/plugin-transform-private-property-in-object", { "loose": true }]
+      [
+        "@babel/plugin-transform-class-properties",
+        {
+          "loose": true
+        }
+      ],
+      [
+        "@babel/plugin-transform-private-methods",
+        {
+          "loose": true
+        }
+      ],
+      [
+        "@babel/plugin-transform-private-property-in-object",
+        {
+          "loose": true
+        }
+      ]
     ]
   },
   "private": true

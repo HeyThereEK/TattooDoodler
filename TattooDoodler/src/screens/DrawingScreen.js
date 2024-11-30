@@ -290,6 +290,7 @@ const DrawingScreen = ({ navigation }) => {
               position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
               fov: 50, // Field of view (lower values zoom in, higher values zoom out)
             }}
+            gl={{ preserveDrawingBuffer: true }} // Add this line
             >
               <ambientLight />
               <pointLight position={[10, 10, 10]} />
