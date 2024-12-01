@@ -200,76 +200,62 @@ const DrawingScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Toolbar */}
       <View style={styles.toolbar}>
-      
-      <View style={styles.leftTools}>
-  <View style={styles.dropdownContainer}>
-    <TouchableOpacity style={styles.toolButton} onPress={toggleDropdown}>
-      <MaterialCommunityIcons name="chevron-down-circle-outline" size={24} color="white" />
-    </TouchableOpacity>
+        <View style={styles.leftTools}>
+          <View style={styles.dropdownContainer}>
+            <TouchableOpacity style={styles.toolButton} onPress={toggleDropdown}>
+              <MaterialCommunityIcons name="chevron-down-circle-outline" size={24} color="white" />
+            </TouchableOpacity>
 
-    {dropdownVisible && (
-      <View style={styles.dropdown}>
-        <Pressable
-          style={({ hovered }) => [
-            styles.dropdownButton,
-            hovered && styles.dropdownButtonHovered,
-          ]}
-        >
-          <MaterialIcons name="file-download" size={24} color="white" />
-          <Text style={styles.dropdownButtonText}>Download</Text>
-        </Pressable>
+            {dropdownVisible && (
+              <View style={styles.dropdown}>
+                <Pressable
+                  style={({ hovered }) => [
+                    styles.dropdownButton,
+                    hovered && styles.dropdownButtonHovered,
+                  ]}
+                >
+                  <MaterialIcons name="file-download" size={24} color="white" />
+                  <Text style={styles.dropdownButtonText}>Download</Text>
+                </Pressable>
 
-        <Pressable
-          style={({ hovered }) => [
-            styles.dropdownButton,
-            hovered && styles.dropdownButtonHovered,
-          ]}
-        >
-          <MaterialIcons name="file-upload" size={24} color="white" />
-          <Text style={styles.dropdownButtonText}>Upload</Text>
-        </Pressable>
+                <Pressable
+                  style={({ hovered }) => [
+                    styles.dropdownButton,
+                    hovered && styles.dropdownButtonHovered,
+                  ]}
+                >
+                  <MaterialIcons name="file-upload" size={24} color="white" />
+                  <Text style={styles.dropdownButtonText}>Upload</Text>
+                </Pressable>
 
-        <Pressable
-          style={({ hovered }) => [
-            styles.dropdownButton,
-            hovered && styles.dropdownButtonHovered,
-          ]}
-          onPress={handleSaveDesign}
-        >
-          <MaterialIcons name="save" size={24} color="white" />
-          <Text style={styles.dropdownButtonText}>Save</Text>
-        </Pressable>
-      </View>
-    )}
-  </View>
+                <Pressable
+                  style={({ hovered }) => [
+                    styles.dropdownButton,
+                    hovered && styles.dropdownButtonHovered,
+                  ]}
+                  onPress={handleSaveDesign}
+                >
+                  <MaterialIcons name="save" size={24} color="white" />
+                  <Text style={styles.dropdownButtonText}>Save</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
 
-  <TouchableOpacity
-    style={styles.toolButton}
-    onPress={() => canvasRef.current?.undoLastPath()}
-  >
-    <MaterialIcons name="undo" size={24} color="white" />
-  </TouchableOpacity>
-
-  <TouchableOpacity style={styles.toolButton}>
-    <MaterialIcons name="redo" size={24} color="white" />
-  </TouchableOpacity>
-</View>
-        {/* <View style={styles.centerTools}>
-          <TouchableOpacity 
-            style={[styles.toolButton, styles.eraserButton]}
-            onPress={() => setSelectedTool('eraser')}
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.undoLastPath()}
           >
-            <MaterialIcons name="edit" size={24} color="white" />
-            <Text style={styles.toolText}>Eraser</Text>
+            <MaterialIcons name="undo" size={24} color="white" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.toolButton, styles.penButton]}
-            onPress={() => setSelectedTool('pen')}
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.redoLastPath()}
           >
-            <Text style={styles.toolText}>Fine Point</Text>
+            <MaterialIcons name="redo" size={24} color="white" />
           </TouchableOpacity>
-        </View> */}
+        </View>
 
         <View style={styles.rightTools}>
           <TouchableOpacity 
@@ -278,6 +264,14 @@ const DrawingScreen = ({ navigation }) => {
           >
             <MaterialCommunityIcons name="eraser" size={24} color="white" />
             <Text style={styles.toolText}>Eraser</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.toolButton, styles.penButton]}
+            onPress={() => setSelectedTool('pen')}
+          >
+            <MaterialIcons name="draw" size={24} color="white" />
+            <Text style={styles.toolText}>Pen</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -301,36 +295,31 @@ const DrawingScreen = ({ navigation }) => {
         </View>
       </View>
 
+
       {/* Drawing Area */}
-        <View 
-          style={styles.drawingContainer}
-        >
-        <View 
-        style={styles.leftPanel}
-        >
+      <View style={styles.drawingContainer}>
+        <View style={styles.leftPanel}>
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
-            <Canvas 
-            style={styles.canvas}
-            camera={{
-              position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
-              fov: 50, // Field of view (lower values zoom in, higher values zoom out)
-            }}
-            gl={{ preserveDrawingBuffer: true }} // Add this line
+            <Canvas
+              style={styles.canvas}
+              camera={{
+                position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
+                fov: 50, // Field of view (lower values zoom in, higher values zoom out)
+              }}
+              gl={{ preserveDrawingBuffer: true }} // Add this line
             >
               <ambientLight />
               <pointLight position={[10, 10, 10]} />
-              <OrbitControls 
-                target={[0, 0, 0]}
-              />
+              <OrbitControls target={[0, 0, 0]} />
               {showGrid && <gridHelper args={[100, 100]} />}
               <axesHelper args={[5]} />
-              <Suspense fallback={null}>             
-              <BodyPartModel 
-                objPath={selectedModel.objPath}
-                texture={selectedTexture}
-                boundingBox={boundingBox}
-              />
+              <Suspense fallback={null}>
+                <BodyPartModel
+                  objPath={selectedModel.objPath}
+                  texture={selectedTexture}
+                  boundingBox={boundingBox}
+                />
               </Suspense>
             </Canvas>
           ) : (
@@ -343,20 +332,21 @@ const DrawingScreen = ({ navigation }) => {
 
           {/* Button to change body part */}
           {selectedModel && (
-          <TouchableOpacity style={styles.toolButton} onPress={changeBodyPart}>
-            <Text style={styles.toolText}>Change Body Part</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.toolButton} onPress={changeBodyPart}>
+              <Text style={styles.toolText}>Change Body Part</Text>
+            </TouchableOpacity>
           )}
 
           {/* Toggle button for grid */}
           {selectedModel && (
-        <TouchableOpacity style={styles.toggleButton} onPress={toggleGrid}>
-          <Text style={styles.toggleButtonText}>
-            {showGrid ? 'Hide Grid' : 'Show Grid'}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.toggleButton} onPress={toggleGrid}>
+              <Text style={styles.toggleButtonText}>
+                {showGrid ? 'Hide Grid' : 'Show Grid'}
+              </Text>
+            </TouchableOpacity>
           )}
-          {/* Resizeable bounding box */}
+
+          {/* Resizable bounding box */}
           <Draggable
             bounds={{
               left: 0,
@@ -376,27 +366,25 @@ const DrawingScreen = ({ navigation }) => {
               console.log(`Dragged to: ${data.x}, ${data.y}`);
             }}
           >
-          <ResizableBox
-            width={boundingBox.width}
-            height={boundingBox.height}
-            minConstraints={[1, 1]}
-            maxConstraints={[356, 616]}
-            onResizeStop={handleResize}
-            style={{
-              position: 'absolute',
-              top: boundingBox.y,
-              left: boundingBox.x,
-              borderWidth: 5,
-              borderColor: 'white',
-              borderStyle: 'solid',
-              backgroundColor: 'transparent',
-            }}
-          />
+            <ResizableBox
+              width={boundingBox.width}
+              height={boundingBox.height}
+              minConstraints={[1, 1]}
+              maxConstraints={[356, 616]}
+              onResizeStop={handleResize}
+              style={{
+                position: 'absolute',
+                top: boundingBox.y,
+                left: boundingBox.x,
+                borderWidth: 5,
+                borderColor: 'white',
+                borderStyle: 'solid',
+                backgroundColor: 'transparent',
+              }}
+            />
           </Draggable>
         </View>
 
-
-        
         <View style={styles.rightPanel}>
           <Text style={styles.canvasLabel}>Sketchpad</Text>
           <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
@@ -478,10 +466,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  // centerTools: {
-  //   flexDirection: 'row',
-  //   gap: 8,
-  // },
   rightTools: {
     flexDirection: 'row',
     gap: 8,
