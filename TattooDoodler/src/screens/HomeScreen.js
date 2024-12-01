@@ -71,10 +71,6 @@ const HomeScreen = ({ navigation }) => {
   const numColumns = 3;
   const cardWidth = (screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns;
 
-  const [fontsLoaded] = useFonts({
-    Bokor,
-  });
-
   return (
     <>
       <StatusBar barStyle={'light-content'} />
