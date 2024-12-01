@@ -27,6 +27,8 @@ import { MeshNormalMaterial } from 'three';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
 import Draggable from 'react-draggable';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 
 const BodyPartModel = ({ objPath, texture, boundingBox}) => {
@@ -97,6 +99,19 @@ const DrawingScreen = ({ navigation }) => {
     width: 100, // initial width
     height: 100, // initial height
   });
+
+  // Function to save the drawing/design
+  const saveDesign = async (design) => {
+    try {
+      const designs = await AsyncStorage.getItem('designs');
+      const designsArray = designs ? JSON.parse(designs) : [];
+      designsArray.push(design);
+      await AsyncStorage.setItem('designs', JSON.stringify(designsArray));
+      console.log('Design saved successfully');
+    } catch (error) {
+      console.error('Error saving design:', error);
+    }
+  };
 
   const handleResize = (e, data) => {
     setBoundingBox({
@@ -170,6 +185,16 @@ const DrawingScreen = ({ navigation }) => {
 
     // Toggle grid visibility
     const toggleGrid = () => setShowGrid((prev) => !prev);
+    
+    // Call this function when you want to save the drawing
+    const handleSaveDesign = async () => {
+      const design = await canvasRef.current?.exportImage();
+      if (design) {
+        await saveDesign(design);
+      } else {
+        console.warn('No design found to save!');
+      }
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -209,6 +234,7 @@ const DrawingScreen = ({ navigation }) => {
             styles.dropdownButton,
             hovered && styles.dropdownButtonHovered,
           ]}
+          onPress={handleSaveDesign}
         >
           <MaterialIcons name="save" size={24} color="white" />
           <Text style={styles.dropdownButtonText}>Save</Text>
@@ -372,6 +398,7 @@ const DrawingScreen = ({ navigation }) => {
 
         
         <View style={styles.rightPanel}>
+          <Text style={styles.canvasLabel}>Sketchpad</Text>
           <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
 
           <TouchableOpacity style={styles.toolButton} onPress={applyDrawingToTexture}>
@@ -615,6 +642,15 @@ const styles = StyleSheet.create({
   dropdownButtonText: {
     color: 'white',
     marginLeft: 8,
+  },
+  canvasLabel: {
+    position: 'absolute',
+    fontFamily: 'TitilliumWeb_300Light',
+    top: 10,
+    left: 10,
+    fontSize: 16,
+    color: '#505050', // Adjust the color as needed
+    zIndex: 1, // Ensure the label is on top of the canvas
   },
 });
 

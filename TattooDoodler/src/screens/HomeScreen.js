@@ -8,6 +8,7 @@ import {
   Dimensions,
   SafeAreaView,
   StatusBar,
+  Image,
   Animated,
 } from 'react-native';
 import { useFonts } from "expo-font";
@@ -20,6 +21,7 @@ import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web';
 const HomeScreen = ({ navigation }) => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [isLoading, setIsLoading] = useState(true); // State to manage loading screen visibility
+  const [designs, setDesigns] = useState([]); // State to store retrieved drawings/designs
   const [fontsLoaded] = useFonts({
     Bokor_400Regular,
     TitilliumWeb_200ExtraLight,
@@ -41,7 +43,7 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (isFirstLaunch) {
+    if (isFirstLaunch || isLoading) {
       setTimeout(() => {
         Animated.timing(opacity, {
           toValue: 0,
@@ -49,22 +51,32 @@ const HomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         }).start(() => {
           setIsFirstLaunch(false);
+          setIsLoading(false); // Hide the loading screen after the fade-out animation
         });
       }, 2000); // Show the loading screen for 2 seconds
     }
-  }, [isFirstLaunch]);
+  }, [isFirstLaunch, isLoading]);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); // Show the loading screen for 2 seconds
-  }, []);
+    // Retrieve saved drawings/designs
+    useEffect(() => {
+      const fetchDesigns = async () => {
+        try {
+          const designs = await AsyncStorage.getItem('designs');
+          if (designs) {
+            setDesigns(JSON.parse(designs));
+          }
+        } catch (error) {
+          console.error('Error retrieving designs:', error);
+        }
+      };
+      fetchDesigns();
+    }, []);
 
   if (isLoading || isFirstLaunch === null || !fontsLoaded) {
     return <LoadingScreen opacity={opacity} />;
   }
 
-  const drawings = [];
+  // const drawings = [];
   const screenWidth = Dimensions.get('window').width;
   const padding = 24;
   const spacing = 16;
@@ -76,7 +88,7 @@ const HomeScreen = ({ navigation }) => {
       <StatusBar barStyle={'light-content'} />
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>My Drawings</Text>
+          <Text style={styles.headerText}>My Designs</Text>
         </View>
 
         <ScrollView style={styles.scrollView}>
@@ -89,10 +101,10 @@ const HomeScreen = ({ navigation }) => {
               }}
             >
               <Text style={styles.plusSign}>+</Text>
-              <Text style={styles.newDrawingText}>New Drawing</Text>
+              <Text style={styles.newDrawingText}>New Design</Text>
             </TouchableOpacity>
 
-            {drawings.map((drawing) => (
+            {/* {drawings.map((drawing) => (
               <TouchableOpacity
                 key={drawing.id}
                 style={[styles.drawingCard, { width: cardWidth }]}
@@ -102,6 +114,18 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.cardInfo}>
                   <Text style={styles.drawingTitle}>{drawing.title}</Text>
                   <Text style={styles.drawingDate}>{drawing.date}</Text>
+                </View>
+              </TouchableOpacity>
+            ))} */}
+            {designs.map((design, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.drawingCard, { width: cardWidth }]}
+                onPress={() => navigation.navigate('Drawing', { design })}
+              >
+                <Image source={{ uri: design }} style={styles.thumbnail} />
+                <View style={styles.cardInfo}>
+                  <Text style={styles.drawingTitle}>Design {index + 1}</Text>
                 </View>
               </TouchableOpacity>
             ))}
