@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { Bokor_400Regular } from "@expo-google-fonts/bokor";
-import { GloriaHallelujah_400Regular } from '@expo-google-fonts/gloria-hallelujah'
 import { useFonts } from "expo-font";
 
 const LoadingScreen = ({ opacity }) => {
