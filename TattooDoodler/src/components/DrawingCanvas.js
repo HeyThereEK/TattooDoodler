@@ -1,8 +1,7 @@
-
-
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Pressable } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import html2canvas from 'html2canvas';
 
 const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
   const [paths, setPaths] = useState([]);
@@ -12,6 +11,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
   const [strokeColor, setStrokeColor] = useState('black');
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [eraserSize, setEraserSize] = useState(1);
+  const svgRef = useRef(null);
   
   // Store path attributes for each stroke
   const [pathAttributes, setPathAttributes] = useState([]);
@@ -138,6 +138,68 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     });
   };
 
+  const exportImage = async () => {
+    try {
+            console.log("Export image triggered");
+            const svg = svgRef.current;
+    
+            if (!svg) {
+                throw new Error("SVG reference is not available.");
+            }
+            // Serialize the SVG to a string
+            const svgData = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+                ${paths.map(path => `<path d="${path}" stroke="black" stroke-width="2" fill="none"/>`).join('')}
+                ${currentPath && `<path d="${currentPath}" stroke="black" stroke-width="2" fill="none"/>`}
+              </svg>
+            `;
+
+            // Create a Blob with the SVG data
+
+            // const blob = new Blob([svgData], { type: 'image/svg+xml' });
+
+
+            // Export as SVG
+
+            // const link = document.createElement('a');
+            // link.href = URL.createObjectURL(blob);
+            // link.download = 'image.svg';
+            // link.click();
+            // console.log("SVG Download triggered");
+
+            // Export as JPEG using html2canvas
+            // First, render the SVG onto the page inside a container
+            const svgContainer = document.createElement('div');
+            svgContainer.innerHTML = svgData;
+            document.body.appendChild(svgContainer);
+
+            // Wait for the SVG to be rendered, then use html2canvas
+            const jpegDataUrl = await new Promise((resolve, reject) => {
+              html2canvas(svgContainer).then((canvas) => {
+                const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                resolve(jpegDataUrl);
+
+                // Create a download link for the JPEG image
+                const jpegLink = document.createElement('a');
+                jpegLink.href = jpegDataUrl;
+                jpegLink.download = 'image.jpeg';
+                jpegLink.click();
+                console.log("JPEG Download triggered");
+                // Clean up the temporary SVG container
+                document.body.removeChild(svgContainer);
+              }).catch(reject);
+            });
+
+            console.log("JPEG image generated");
+            return jpegDataUrl; // Return JPEG data URL
+
+            } catch (error) {
+            console.error('Error exporting image:', error);
+            alert('Failed to export image. Please try again.');
+            return null;
+        }
+    };
+
   useImperativeHandle(ref, () => ({
     undoLastPath,
     redoLastPath,
@@ -145,6 +207,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     setStrokeColor,
     setStrokeWidth,
     setEraserSize,
+    exportImage
   }));
 
   return (
@@ -181,7 +244,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
         onMouseMove={handleMove}
         onMouseUp={handleEnd}
       >
-        <Svg style={styles.svg}>
+        <Svg ref = {svgRef} style={styles.svg}>
           {paths.map((path, index) => (
             <Path
               key={index}
@@ -205,6 +268,9 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
       <View style={styles.actions}>
         <TouchableOpacity style={styles.clearButton} onPress={clearCanvas}>
           <Text style={styles.clearButtonText}>Clear</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.exportButton} onPress={exportImage}>
+          <Text style={styles.exportButtonText}>Export Image</Text>
         </TouchableOpacity>
         {selectedTool === 'eraser' && (
           <View style={styles.eraserSizes}>
@@ -305,6 +371,18 @@ const styles = StyleSheet.create({
   },
   eraserButtonText: {
     fontSize: 12,
+  },
+
+  exportButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+
+  exportButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
 });
 

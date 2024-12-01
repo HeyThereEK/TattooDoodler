@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,64 @@ import {
   StyleSheet,
   Dimensions,
   SafeAreaView,
+  StatusBar,
+  Animated,
 } from 'react-native';
+import { useFonts } from "expo-font";
+import { Bokor_400Regular } from "@expo-google-fonts/bokor";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LoadingScreen from './LoadingScreen';
+import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web';
+import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web';
 
-const DrawingAppPreview = ({ navigation }) => {  // Add navigation prop
-  const drawings = [
-  ];
+const HomeScreen = ({ navigation }) => {
+  const [isFirstLaunch, setIsFirstLaunch] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // State to manage loading screen visibility
+  const [fontsLoaded] = useFonts({
+    Bokor_400Regular,
+    TitilliumWeb_200ExtraLight,
+    TitilliumWeb_300Light,
+  });
+  const opacity = useRef(new Animated.Value(1)).current;
 
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+      if (hasLaunched === null) {
+        await AsyncStorage.setItem('hasLaunched', 'true');
+        setIsFirstLaunch(true);
+      } else {
+        setIsFirstLaunch(false);
+      }
+    };
+    checkFirstLaunch();
+  }, []);
+
+  useEffect(() => {
+    if (isFirstLaunch) {
+      setTimeout(() => {
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }).start(() => {
+          setIsFirstLaunch(false);
+        });
+      }, 2000); // Show the loading screen for 2 seconds
+    }
+  }, [isFirstLaunch]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show the loading screen for 2 seconds
+  }, []);
+
+  if (isLoading || isFirstLaunch === null || !fontsLoaded) {
+    return <LoadingScreen opacity={opacity} />;
+  }
+
+  const drawings = [];
   const screenWidth = Dimensions.get('window').width;
   const padding = 24;
   const spacing = 16;
@@ -20,55 +72,66 @@ const DrawingAppPreview = ({ navigation }) => {  // Add navigation prop
   const cardWidth = (screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>My Drawings</Text>
-      </View>
-
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.gridContainer}>
-          <TouchableOpacity 
-            style={[styles.newDrawingButton, { width: cardWidth }]}
-            onPress={() => navigation.navigate('Drawing')}  // Add navigation
-          >
-            <Text style={styles.plusSign}>+</Text>
-            <Text style={styles.newDrawingText}>New Drawing</Text>
-          </TouchableOpacity>
-
-          {drawings.map((drawing) => (
-            <TouchableOpacity 
-              key={drawing.id} 
-              style={[styles.drawingCard, { width: cardWidth }]}
-              onPress={() => navigation.navigate('Drawing')}  // Add navigation
-            >
-              <View style={styles.thumbnail} />
-              <View style={styles.cardInfo}>
-                <Text style={styles.drawingTitle}>{drawing.title}</Text>
-                <Text style={styles.drawingDate}>{drawing.date}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+    <>
+      <StatusBar barStyle={'light-content'} />
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>My Drawings</Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.gridContainer}>
+            <TouchableOpacity
+              style={[styles.newDrawingButton, { width: cardWidth }]}
+              onPress={() => {
+                console.log('Navigating to DrawingScreen'); // Debugging log
+                navigation.navigate('Drawing');
+              }}
+            >
+              <Text style={styles.plusSign}>+</Text>
+              <Text style={styles.newDrawingText}>New Drawing</Text>
+            </TouchableOpacity>
+
+            {drawings.map((drawing) => (
+              <TouchableOpacity
+                key={drawing.id}
+                style={[styles.drawingCard, { width: cardWidth }]}
+                onPress={() => navigation.navigate('Drawing')}  // Add navigation
+              >
+                <View style={styles.thumbnail} />
+                <View style={styles.cardInfo}>
+                  <Text style={styles.drawingTitle}>{drawing.title}</Text>
+                  <Text style={styles.drawingDate}>{drawing.date}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  statusbar: {
+    backgroundColor: '#232324',
+    color: '#afafaf',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#2c2c2c',
   },
   header: {
-    padding: 24,
-    backgroundColor: '#FFFFFF',
+    padding: 20,
+    paddingLeft: 32,
+    backgroundColor: '#232324',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#232324',
   },
   headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: 32,
+    fontFamily: 'Bokor_400Regular',
+    color: '#afafaf',
   },
   scrollView: {
     flex: 1,
@@ -78,13 +141,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
+    backgroundColor: '#2c2c2c',
+    minHeight: '100%',
   },
   newDrawingButton: {
-    aspectRatio: 3/4,
-    backgroundColor: '#FFFFFF',
+    aspectRatio: 3 / 4,
+    backgroundColor: '#3d3d3d',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: '#565656',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -98,9 +163,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
     marginTop: 8,
+    fontFamily: 'TitilliumWeb_300Light',
   },
   drawingCard: {
-    aspectRatio: 3/4,
+    aspectRatio: 3 / 4,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
@@ -133,4 +199,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DrawingAppPreview;
+export default HomeScreen;
