@@ -273,14 +273,6 @@ const DrawingScreen = ({ navigation }) => {
             <MaterialIcons name="draw" size={24} color="white" />
             <Text style={styles.toolText}>Pen</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.toolButton, styles.penButton]}
-            onPress={() => setSelectedTool('pen')}
-          >
-            <MaterialIcons name="draw" size={24} color="white" />
-            <Text style={styles.toolText}>Pen</Text>
-          </TouchableOpacity>
 
           {/* <TouchableOpacity style={[styles.toolButton, styles.colorWheel]}>
             <Text style={styles.toolText}>Color Wheel</Text>

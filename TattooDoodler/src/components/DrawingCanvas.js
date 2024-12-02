@@ -156,29 +156,13 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
                 ${currentPath && `<path d="${currentPath}" stroke="black" stroke-width="2" fill="none"/>`}
               </svg>
             `;
-
-            // Create a Blob with the SVG data
-
-            // const blob = new Blob([svgData], { type: 'image/svg+xml' });
-
-
-            // Export as SVG
-
-            // const link = document.createElement('a');
-            // link.href = URL.createObjectURL(blob);
-            // link.download = 'image.svg';
-            // link.click();
-            // console.log("SVG Download triggered");
-
-            // Export as JPEG using html2canvas
-            // First, render the SVG onto the page inside a container
             const svgContainer = document.createElement('div');
             svgContainer.innerHTML = svgData;
             document.body.appendChild(svgContainer);
 
             // Wait for the SVG to be rendered, then use html2canvas
             const jpegDataUrl = await new Promise((resolve, reject) => {
-              html2canvas(svgContainer).then((canvas) => {
+              html2canvas(svgContainer, { width: 500, height: 500 }).then((canvas) => {
                 const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
                 resolve(jpegDataUrl);
 

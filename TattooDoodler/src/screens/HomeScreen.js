@@ -8,8 +8,8 @@ import {
   Dimensions,
   SafeAreaView,
   StatusBar,
-  Image,
   Animated,
+  Image,
 } from 'react-native';
 import { useFonts } from "expo-font";
 import { Bokor_400Regular } from "@expo-google-fonts/bokor";
@@ -21,13 +21,23 @@ import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web';
 const HomeScreen = ({ navigation }) => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [isLoading, setIsLoading] = useState(true); // State to manage loading screen visibility
-  const [designs, setDesigns] = useState([]); // State to store retrieved drawings/designs
+  const [designs, setDesigns] = useState([]); // State to store retrieved designs
   const [fontsLoaded] = useFonts({
     Bokor_400Regular,
     TitilliumWeb_200ExtraLight,
     TitilliumWeb_300Light,
   });
   const opacity = useRef(new Animated.Value(1)).current;
+
+  const clearDrawings = async () => {
+    try {
+      await AsyncStorage.removeItem('designs');
+      setDesigns([]); // Clear the designs state
+      console.log('Drawings cleared successfully');
+    } catch (error) {
+      console.error('Error clearing drawings:', error);
+    }
+  };
 
   useEffect(() => {
     const checkFirstLaunch = async () => {
@@ -43,40 +53,46 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (isFirstLaunch || isLoading) {
-      setTimeout(() => {
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }).start(() => {
-          setIsFirstLaunch(false);
-          setIsLoading(false); // Hide the loading screen after the fade-out animation
-        });
-      }, 2000); // Show the loading screen for 2 seconds
-    }
-  }, [isFirstLaunch, isLoading]);
+    const showLoadingScreen = async () => {
+      const hasShownLoadingScreen = await AsyncStorage.getItem('hasShownLoadingScreen');
+      if (hasShownLoadingScreen === null) {
+        setIsLoading(true);
+        setTimeout(() => {
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }).start(async () => {
+            setIsLoading(false);
+            await AsyncStorage.setItem('hasShownLoadingScreen', 'true');
+          });
+        }, 2000); // Show the loading screen for 2 seconds
+      } else {
+        setIsLoading(false); // Immediately hide the loading screen if it has been shown before
+      }
+    };
+    showLoadingScreen();
+  }, []);
 
-    // Retrieve saved drawings/designs
-    useEffect(() => {
-      const fetchDesigns = async () => {
-        try {
-          const designs = await AsyncStorage.getItem('designs');
-          if (designs) {
-            setDesigns(JSON.parse(designs));
-          }
-        } catch (error) {
-          console.error('Error retrieving designs:', error);
+  // Retrieve saved designs
+  useEffect(() => {
+    const fetchDesigns = async () => {
+      try {
+        const designs = await AsyncStorage.getItem('designs');
+        if (designs) {
+          setDesigns(JSON.parse(designs));
         }
-      };
-      fetchDesigns();
-    }, []);
+      } catch (error) {
+        console.error('Error retrieving designs:', error);
+      }
+    };
+    fetchDesigns();
+  }, []);
 
   if (isLoading || isFirstLaunch === null || !fontsLoaded) {
     return <LoadingScreen opacity={opacity} />;
   }
 
-  // const drawings = [];
   const screenWidth = Dimensions.get('window').width;
   const padding = 24;
   const spacing = 16;
@@ -94,41 +110,34 @@ const HomeScreen = ({ navigation }) => {
         <ScrollView style={styles.scrollView}>
           <View style={styles.gridContainer}>
             <TouchableOpacity
-              style={[styles.newDrawingButton, { width: cardWidth }]}
+              style={[styles.newDesignButton, { width: cardWidth }]}
               onPress={() => {
-                console.log('Navigating to DrawingScreen'); // Debugging log
+                console.log('Navigating to DrawingScreen');
                 navigation.navigate('Drawing');
               }}
             >
               <Text style={styles.plusSign}>+</Text>
-              <Text style={styles.newDrawingText}>New Design</Text>
+              <Text style={styles.newDesignText}>New Design</Text>
             </TouchableOpacity>
 
-            {/* {drawings.map((drawing) => (
-              <TouchableOpacity
-                key={drawing.id}
-                style={[styles.drawingCard, { width: cardWidth }]}
-                onPress={() => navigation.navigate('Drawing')}  // Add navigation
-              >
-                <View style={styles.thumbnail} />
-                <View style={styles.cardInfo}>
-                  <Text style={styles.drawingTitle}>{drawing.title}</Text>
-                  <Text style={styles.drawingDate}>{drawing.date}</Text>
-                </View>
-              </TouchableOpacity>
-            ))} */}
             {designs.map((design, index) => (
               <TouchableOpacity
                 key={index}
-                style={[styles.drawingCard, { width: cardWidth }]}
+                style={[styles.designCard, { width: cardWidth }]}
                 onPress={() => navigation.navigate('Drawing', { design })}
               >
                 <Image source={{ uri: design }} style={styles.thumbnail} />
                 <View style={styles.cardInfo}>
-                  <Text style={styles.drawingTitle}>Design {index + 1}</Text>
+                  <Text style={styles.designTitle}>Design {index + 1}</Text>
                 </View>
               </TouchableOpacity>
             ))}
+
+          </View>
+          <View style={styles.footer}>
+            <TouchableOpacity style={styles.clearButton} onPress={clearDrawings}>
+                <Text style={styles.clearButtonText}>Clear Drawings</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -168,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2c2c2c',
     minHeight: '100%',
   },
-  newDrawingButton: {
+  newDesignButton: {
     aspectRatio: 3 / 4,
     backgroundColor: '#3d3d3d',
     borderRadius: 12,
@@ -183,13 +192,13 @@ const styles = StyleSheet.create({
     fontSize: 48,
     color: '#666666',
   },
-  newDrawingText: {
+  newDesignText: {
     fontSize: 16,
     color: '#666666',
     marginTop: 8,
     fontFamily: 'TitilliumWeb_300Light',
   },
-  drawingCard: {
+  designCard: {
     aspectRatio: 3 / 4,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -206,20 +215,42 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     flex: 1,
-    backgroundColor: '#E8E8E8',
+    // backgroundColor: '#E8E8E8',
+    // backgroundColor: '#3d3d3d',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start'
   },
   cardInfo: {
     padding: 12,
   },
-  drawingTitle: {
+  designTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333333',
   },
-  drawingDate: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 4,
+  clearButton: {
+    backgroundColor: '#FF5757',
+    borderRadius: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 16,
+    height: 24,
+    width: 120,
+  },
+  clearButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 10,
+  },
+  footer: {
+    alignItems: 'flex-end',
+    height: 100,
+    justifyContent: 'flex-end',
   },
 });
 
