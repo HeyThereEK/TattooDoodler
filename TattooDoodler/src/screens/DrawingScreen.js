@@ -30,8 +30,9 @@ import Draggable from 'react-draggable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import { TouchableWithoutFeedback } from 'react-native';
+import { Slider } from 'react-native-elements';
 
-const BodyPartModel = ({ objPath, texture, boundingBox}) => {
+const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -48,16 +49,20 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
             texture.center.set(0.5,0.5);
             console.log("texture center", texture.center)
             texture.rotation = 0
-            // Calculate new texture offset and repeat based on bounding box
-            const textureOffsetX = boundingBox.x / boundingBox.width - 0.5;
-            const textureOffsetY = boundingBox.y / boundingBox.height - 0.5; 
+            // // Calculate new texture offset and repeat based on bounding box
+            // const textureOffsetX = (boundingBox.x + boundingBox.width / 2) / boundingBox.width - 0.5;
+            // const textureOffsetY = (boundingBox.y + boundingBox.height / 2) / boundingBox.height - 0.5;
+            const textureOffsetX = (boundingBox.x / boundingBox.width) - 0.5;
+            const textureOffsetY = (boundingBox.y / boundingBox.height) - 0.5;
 
-            const textureRepeatX = 100 / boundingBox.width; 
-            const textureRepeatY = 100 / boundingBox.height; 
+            const textureRepeatX = (100 / boundingBox.width) / textureScale; 
+            const textureRepeatY = (100 / boundingBox.height) / textureScale; 
+            // const textureRepeatX = (boundingBox.width / 100) * textureScale;
+            // const textureRepeatY = (boundingBox.height / 100) * textureScale;
 
             texture.offset.set(
-              THREE.MathUtils.clamp(textureOffsetX, -1, 1),
-              THREE.MathUtils.clamp(textureOffsetY, -1, 1)
+              THREE.MathUtils.clamp(textureOffsetX, 0, 1),
+              THREE.MathUtils.clamp(textureOffsetY, 0, 1)
             );
             console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
@@ -69,11 +74,11 @@ const BodyPartModel = ({ objPath, texture, boundingBox}) => {
         }
       });
     }
-  }, [object, texture, boundingBox]);
+  }, [object, texture, boundingBox, textureScale]);
 
   return <primitive
     object={object}
-    scale={[0.1, 0.1, 0.1]} // Reduce size to fit the scene
+    scale={[0.15, 0.15, 0.15]} // Reduce size to fit the scene
     position={[0, 0, 0]} // Center the model
     />;
 };
@@ -94,10 +99,13 @@ const DrawingScreen = ({ navigation }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
   const [isSaveModalVisible, setIsSaveModalVisible] = useState(false); // State to manage save modal visibility
   const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
+  const [textureScale, setTextureScale] = useState(0.1); // State to manage the scale of the texture
+  const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
+  
 
   const [boundingBox, setBoundingBox] = useState({
-    x: 0, // initial X position
-    y: 0, // initial Y position
+    x: 50, // initial X position
+    y: 50, // initial Y position
     width: 100, // initial width
     height: 100, // initial height
   });
@@ -164,6 +172,7 @@ const DrawingScreen = ({ navigation }) => {
       console.log("New texture created");
       setSelectedTexture(texture);
       console.log("New texture selected");
+      setIsTattooApplied(true);
     }catch (error){
       console.error('Error loading texture:', error);
     }
@@ -356,6 +365,7 @@ const DrawingScreen = ({ navigation }) => {
                   objPath={selectedModel.objPath}
                   texture={selectedTexture}
                   boundingBox={boundingBox}
+                  textureScale={textureScale} // Pass the texture scale to the model
                 />
               </Suspense>
             </Canvas>
@@ -417,6 +427,18 @@ const DrawingScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
+      {isTattooApplied && (
+        <>
+          {/* Slider to adjust texture scale */}
+          <Slider
+            style={styles.slider}
+            minimumValue={0.01}
+            maximumValue={.8}
+            value={textureScale}
+            onValueChange={setTextureScale}
+            thumbStyle={styles.thumb}
+          />
+
           {/* Resizable bounding box */}
           <Draggable
             bounds={{
@@ -453,7 +475,9 @@ const DrawingScreen = ({ navigation }) => {
                 backgroundColor: 'transparent',
               }}
             />
-          </Draggable>
+              </Draggable>
+            </>
+          )}
         </View>
 
         <View style={styles.rightPanel}>
@@ -760,6 +784,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontFamily: 'TitilliumWeb_300Light',
+  },
+  slider: {
+    width: '80%',
+    alignSelf: 'center',
+    marginTop: 20,
+  },
+  thumb: {
+    width: 20, // Adjust the size of the thumb
+    height: 20, // Adjust the size of the thumb
+    backgroundColor: '#FF0000', // Change the color of the thumb
+    // borderRadius: 10, // Make the thumb circular
+    // borderWidth: 2,
+    // borderColor: '#FFFFFF', // Optional: Add a border color
   },
 });
 

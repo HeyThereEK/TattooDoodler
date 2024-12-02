@@ -40,6 +40,7 @@
     "react-draggable": "^4.4.6",
     "react-native": "0.76.2",
     "react-native-3d-model-view": "^1.2.0",
+    "react-native-elements": "^3.4.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "^1.11.0",
