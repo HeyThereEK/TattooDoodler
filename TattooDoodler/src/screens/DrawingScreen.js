@@ -99,13 +99,13 @@ const DrawingScreen = ({ navigation }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
   const [isSaveModalVisible, setIsSaveModalVisible] = useState(false); // State to manage save modal visibility
   const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
-  const [textureScale, setTextureScale] = useState(0.1); // State to manage the scale of the texture
+  const [textureScale, setTextureScale] = useState(0.4); // State to manage the scale of the texture
   const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
   
 
   const [boundingBox, setBoundingBox] = useState({
-    x: 50, // initial X position
-    y: 50, // initial Y position
+    x: 75, // initial X position
+    y: 75, // initial Y position
     width: 100, // initial width
     height: 100, // initial height
   });
@@ -469,7 +469,7 @@ const DrawingScreen = ({ navigation }) => {
                 position: 'absolute',
                 top: boundingBox.y,
                 left: boundingBox.x,
-                borderWidth: 5,
+                borderWidth: 3,
                 borderColor: 'white',
                 borderStyle: 'solid',
                 backgroundColor: 'transparent',
