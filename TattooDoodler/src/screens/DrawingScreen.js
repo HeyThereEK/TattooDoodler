@@ -28,8 +28,8 @@ import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
 import Draggable from 'react-draggable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import { useRoute } from '@react-navigation/native';
+import { TouchableWithoutFeedback } from 'react-native';
 
 const BodyPartModel = ({ objPath, texture, boundingBox}) => {
   const object = useLoader(OBJLoader, objPath);
@@ -92,6 +92,8 @@ const DrawingScreen = ({ navigation }) => {
   const [showGrid, setShowGrid] = useState(true); // State to control grid visibility
   const [selectedTexture, setSelectedTexture] = useState(null);
   const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
+  const [isSaveModalVisible, setIsSaveModalVisible] = useState(false); // State to manage save modal visibility
+  const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
 
   const [boundingBox, setBoundingBox] = useState({
     x: 0, // initial X position
@@ -99,6 +101,29 @@ const DrawingScreen = ({ navigation }) => {
     width: 100, // initial width
     height: 100, // initial height
   });
+  const route = useRoute();
+  const { design } = route.params || {}; // Get the passed design data
+
+  useEffect(() => {
+    if (design) {
+      loadDesign(design); // Load the design into the canvas
+    }
+  }, [design]);
+
+  const loadDesign = async (design) => {
+    try {
+      const response = await fetch(design);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        canvasRef.current?.loadImage(base64data); // Load the image into the canvas
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error('Error loading design:', error);
+    }
+  };
 
   // Function to save the drawing/design
   const saveDesign = async (design) => {
@@ -195,6 +220,26 @@ const DrawingScreen = ({ navigation }) => {
         console.warn('No design found to save!');
       }
     };
+  
+    const handleNavigateHome = () => {
+      if (!isDesignSaved) {
+        setIsSaveModalVisible(true); // Show the save modal if the design is not saved
+      } else {
+        navigation.navigate('Home'); // Navigate to home if the design is already saved
+      }
+    };
+    
+    const handleSaveAndNavigateHome = async () => {
+      await handleSaveDesign(); // Save the design
+      setIsDesignSaved(true); // Mark the design as saved
+      setIsSaveModalVisible(false); // Hide the save modal
+      navigation.navigate('Home'); // Navigate to home
+    };
+    
+    const handleDiscardAndNavigateHome = () => {
+      setIsSaveModalVisible(false); // Hide the save modal
+      navigation.navigate('Home'); // Navigate to home
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,6 +258,7 @@ const DrawingScreen = ({ navigation }) => {
                     styles.dropdownButton,
                     hovered && styles.dropdownButtonHovered,
                   ]}
+                  onPress={canvasRef.current?.exportImage} // Call the exportImage function
                 >
                   <MaterialIcons name="file-download" size={24} color="white" />
                   <Text style={styles.dropdownButtonText}>Download</Text>
@@ -227,8 +273,7 @@ const DrawingScreen = ({ navigation }) => {
                   <MaterialIcons name="file-upload" size={24} color="white" />
                   <Text style={styles.dropdownButtonText}>Upload</Text>
                 </Pressable>
-
-                <Pressable
+                {/* <Pressable
                   style={({ hovered }) => [
                     styles.dropdownButton,
                     hovered && styles.dropdownButtonHovered,
@@ -237,7 +282,7 @@ const DrawingScreen = ({ navigation }) => {
                 >
                   <MaterialIcons name="save" size={24} color="white" />
                   <Text style={styles.dropdownButtonText}>Save</Text>
-                </Pressable>
+                </Pressable> */}
               </View>
             )}
           </View>
@@ -280,7 +325,7 @@ const DrawingScreen = ({ navigation }) => {
 
           <TouchableOpacity 
             style={styles.toolButton}
-            onPress={() => navigation.navigate('Home')}
+            onPress={handleNavigateHome}
           >
             <MaterialIcons name="home" size={24} color="white" />
           </TouchableOpacity>
@@ -321,6 +366,40 @@ const DrawingScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Save Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isSaveModalVisible}
+            onRequestClose={() => setIsSaveModalVisible(false)}
+          >
+            <TouchableWithoutFeedback onPress={() => setIsSaveModalVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={() => {}}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Save Your Design</Text>
+                    <Text style={styles.modalMessage}>You have unsaved changes.</Text>
+                    <Text style={styles.modalMessageEnd}>Would you like to save your design before returning home?</Text>
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity
+                        style={styles.modalButton}
+                        onPress={handleSaveAndNavigateHome}
+                      >
+                        <Text style={styles.modalButtonText}>Save</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.discardButton]}
+                        onPress={handleDiscardAndNavigateHome}
+                      >
+                        <Text style={styles.modalButtonText}>Discard</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
 
           {/* Button to change body part */}
           {selectedModel && (
@@ -622,11 +701,65 @@ const styles = StyleSheet.create({
   canvasLabel: {
     position: 'absolute',
     fontFamily: 'TitilliumWeb_300Light',
-    top: 10,
-    left: 10,
+    top: 2,
+    left: 6,
     fontSize: 16,
     color: '#505050', // Adjust the color as needed
     zIndex: 1, // Ensure the label is on top of the canvas
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '40%',
+    backgroundColor: '#3d3d3d',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#878787',
+    fontFamily: 'TitilliumWeb_300Light',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#878787',
+    fontFamily: 'TitilliumWeb_300Light',
+    textAlign: 'center',
+    marginBottom: 0,
+  },
+  modalMessageEnd: {
+    fontSize: 16,
+    color: '#878787',
+    fontFamily: 'TitilliumWeb_300Light',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  discardButton: {
+    backgroundColor: '#FF5757',
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'TitilliumWeb_300Light',
   },
 });
 

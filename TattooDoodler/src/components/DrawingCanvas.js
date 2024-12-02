@@ -1,6 +1,6 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Pressable } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, SvgXml } from 'react-native-svg';
 import html2canvas from 'html2canvas';
 
 const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
@@ -11,6 +11,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
   const [strokeColor, setStrokeColor] = useState('black');
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [eraserSize, setEraserSize] = useState(1);
+  const [svgContent, setSvgContent] = useState(null); // State to store SVG content
   const svgRef = useRef(null);
   
   // Store path attributes for each stroke
@@ -186,6 +187,10 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
             return null;
         }
     };
+  
+    const loadImage = (base64data) => {
+      setSvgContent(base64data); // Set the SVG content to be rendered
+    };
 
   useImperativeHandle(ref, () => ({
     undoLastPath,
@@ -194,7 +199,8 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     setStrokeColor,
     setStrokeWidth,
     setEraserSize,
-    exportImage
+    exportImage,
+    loadImage,
   }));
 
   return (
@@ -231,6 +237,9 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
         onMouseMove={handleMove}
         onMouseUp={handleEnd}
       >
+        {svgContent ? (
+          <SvgXml xml={svgContent} style={styles.svg} />
+        ) : (
         <Svg ref = {svgRef} style={styles.svg}>
           {paths.map((path, index) => (
             <Path
@@ -249,16 +258,17 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
               fill="none"
             />
           )}
-        </Svg>
+          </Svg>
+      )}
       </Pressable>
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.clearButton} onPress={clearCanvas}>
           <Text style={styles.clearButtonText}>Clear</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.exportButton} onPress={exportImage}>
+        {/* <TouchableOpacity style={styles.exportButton} onPress={exportImage}>
           <Text style={styles.exportButtonText}>Export Image</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         {selectedTool === 'eraser' && (
           <View style={styles.eraserSizes}>
             {[1, 2, 3].map((size) => (
@@ -370,6 +380,9 @@ const styles = StyleSheet.create({
   exportButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  svg: {
+    flex: 1,
   },
 });
 

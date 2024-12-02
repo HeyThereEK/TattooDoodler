@@ -96,8 +96,8 @@ const HomeScreen = ({ navigation }) => {
   const screenWidth = Dimensions.get('window').width;
   const padding = 24;
   const spacing = 16;
-  const numColumns = 3;
-  const cardWidth = (screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns;
+  const numColumns = 4;
+  const cardWidth = ((screenWidth - 2 * padding - (numColumns - 1) * spacing) / numColumns);
 
   return (
     <>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 32,
-    fontFamily: 'Bokor_400Regular',
+    fontFamily: 'TitilliumWeb_300Light',
     color: '#afafaf',
   },
   scrollView: {
