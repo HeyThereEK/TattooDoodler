@@ -40,6 +40,8 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
     if (object) {
       object.traverse((child) => {
         if (child.isMesh && child.geometry) {
+          child.castShadow = true;
+          child.receiveShadow = true;
           console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
           console.log('UV Attributes array:', child.geometry.attributes.uv.array);
           const uvArray = child.geometry.attributes.uv.array;
@@ -70,7 +72,13 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
             child.material.needsUpdate = true;
           } else {
-            child.material = new THREE.MeshBasicMaterial(); // Default material
+            child.material = new THREE.MeshPhysicalMaterial({ // Use MeshPhysicalMaterial for better shading
+              color: 0xffffff,
+              // metalness: 0.5,
+              roughness: 0.75,
+              clearcoat: 1.0,
+              clearcoatRoughness: 0.5,
+            });
           }
         }
       });
@@ -382,10 +390,46 @@ const DrawingScreen = ({ navigation }) => {
                 position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
                 fov: 50, // Field of view (lower values zoom in, higher values zoom out)
               }}
+              shadows
               gl={{ preserveDrawingBuffer: true }} // Add this line
             >
-              <ambientLight />
-              <pointLight position={[10, 10, 10]} />
+              <ambientLight intensity={0.3} />
+              <spotLight
+                position={[10, 10, 10]}
+                angle={0.15}
+                penumbra={1}
+                intensity={1.5}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-bias={-0.0001}
+              />
+              <spotLight
+                position={[10, 10, 10]}
+                angle={0.15}
+                penumbra={1}
+                intensity={1.5} // Increase the intensity of the spotlight
+                castShadow // Enable shadow casting
+                shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
+                shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
+                shadow-bias={-0.0001} // Adjust shadow bias to reduce shadow artifacts
+              />
+              <pointLight
+                position={[-10, -10, -10]}
+                intensity={1.5}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-bias={-0.0001}
+              />
+              <directionalLight
+                position={[5, 5, 5]}
+                intensity={1.0} // Add a directional light for additional brightness
+                castShadow
+                shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
+                shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
+                shadow-bias={-0.0001} // Adjust shadow bias to reduce shadow artifacts
+              />
               <OrbitControls target={[0, 0, 0]} />
               {showGrid && <gridHelper args={[100, 100]} />}
               <axesHelper args={[5]} />

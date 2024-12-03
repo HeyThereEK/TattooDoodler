@@ -27,6 +27,7 @@
     "expo-asset": "~11.0.1",
     "expo-file-system": "~18.0.3",
     "expo-gl": "^15.0.2",
+    "expo-image-picker": "^16.0.3",
     "expo-modules-core": "^2.0.3",
     "expo-sharing": "~13.0.0",
     "expo-status-bar": "~2.0.0",
