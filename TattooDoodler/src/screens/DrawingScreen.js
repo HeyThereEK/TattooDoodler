@@ -73,7 +73,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
             child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshPhysicalMaterial({ // Use MeshPhysicalMaterial for better shading
-              color: 0xffffff,
+              color: 0x009999,
               // metalness: 0.5,
               roughness: 0.75,
               clearcoat: 1.0,
@@ -82,6 +82,23 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
           }
         }
       });
+      object.rotation.x = 0; // Ensure the model is not rotated on the X-axis
+      object.rotation.z = 0; // Ensure the model is not rotated on the Z-axis
+        // Adjust the rotation based on the specific model being loaded
+        if (objPath.includes('head')) {
+          object.rotation.y = Math.PI; // Rotate the head model to face the camera
+        } else if (objPath.includes('torso')) {
+          // object.rotation.y = -Math.PI; // Rotate the torso model to face the camera
+          object.rotation.x = -Math.PI;
+        } else if (objPath.includes('leg')) {
+          // object.rotation.y = -Math.PI; // Rotate the leg model to face the camera
+          object.rotation.x = -Math.PI;
+        } else if (objPath.includes('arm')) {
+          // object.rotation.y = -Math.PI; // Rotate the leg model to face the camera
+          object.rotation.x = -Math.PI;
+        }else {
+          object.rotation.y = Math.PI; // Default rotation for other models
+        }
     }
   }, [object, texture, boundingBox, textureScale]);
 
@@ -387,7 +404,7 @@ const DrawingScreen = ({ navigation }) => {
             <Canvas
               style={styles.canvas}
               camera={{
-                position: [0, 5, 10], // Adjust to fit your model (X, Y, Z)
+                position: [0, 20, 10], // Adjust to fit your model (X, Y, Z)
                 fov: 50, // Field of view (lower values zoom in, higher values zoom out)
               }}
               shadows
