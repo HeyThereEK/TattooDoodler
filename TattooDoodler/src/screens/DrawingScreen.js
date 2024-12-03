@@ -12,6 +12,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useFonts } from "expo-font";
+import * as ImagePicker from 'expo-image-picker';
 import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
 import { OrbitControls} from '@react-three/drei';
@@ -178,6 +179,33 @@ const DrawingScreen = ({ navigation }) => {
     }
   };
 
+  const uploadImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
+  
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 1,
+      });
+  
+      if (!result.canceled) {
+        const uri = result.assets[0].uri;
+        const texture = new THREE.TextureLoader().load(uri);
+        texture.needsUpdate = true;
+        console.log('Texture loaded from:', uri);
+        setSelectedTexture(texture); // Set the texture for your 3D model
+      }
+    } catch (err) {
+      console.error('Error picking image:', err);
+    }
+  };
+  
+
     // Add a body part
     const handleImageSelect = (bodyPart) => {
       console.log(`Selected: ${bodyPart}`);
@@ -278,6 +306,7 @@ const DrawingScreen = ({ navigation }) => {
                     styles.dropdownButton,
                     hovered && styles.dropdownButtonHovered,
                   ]}
+                  onPress={uploadImage}
                 >
                   <MaterialIcons name="file-upload" size={24} color="white" />
                   <Text style={styles.dropdownButtonText}>Upload</Text>
