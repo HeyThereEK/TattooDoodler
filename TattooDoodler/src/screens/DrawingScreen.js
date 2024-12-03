@@ -104,7 +104,7 @@ const DrawingScreen = ({ navigation }) => {
   
 
   const [boundingBox, setBoundingBox] = useState({
-    x: 75, // initial X position
+    x: 90, // initial X position
     y: 75, // initial Y position
     width: 100, // initial width
     height: 100, // initial height
