@@ -13,12 +13,18 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
   const [eraserSize, setEraserSize] = useState(1);
   const [svgContent, setSvgContent] = useState(null); // State to store SVG content
   const svgRef = useRef(null);
-  
+
   // Store path attributes for each stroke
   const [pathAttributes, setPathAttributes] = useState([]);
-  
+
   const colors = ['black', '#FF0000', '#00FF00', '#0000FF', '#FFA500', '#800080'];
   const brushSizes = [1, 2, 4, 6, 8, 10];
+
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0 });
+  const handleLayout = (event) => {
+    const { width, height } = event.nativeEvent.layout;
+    setCanvasDimensions({ width, height });
+  };
 
   const getCoordinates = (event) => {
     if (event.nativeEvent.touches && event.nativeEvent.touches.length > 0) {
@@ -43,7 +49,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
 
   const handleMove = (event) => {
     if (!isDrawing) return;
-  
+
     const { x, y } = getCoordinates(event);
     if (selectedTool === 'pen' && isDrawing) {
       setCurrentPath((prev) => `${prev} L${x},${y}`);
@@ -51,8 +57,8 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
       handleErase(x, y);
     }
   };
-  
-  
+
+
   const handleEnd = () => {
     if (selectedTool === 'pen' && currentPath) {
       setPaths((prevPaths) => [...prevPaths, currentPath]);
@@ -68,14 +74,14 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
 
   const handleErase = (x, y) => {
     // Remove paths that intersect with eraser
-    setPaths((prevPaths) => 
+    setPaths((prevPaths) =>
       prevPaths.filter((_, index) => {
         // Simple bounding box check - could be improved with proper path intersection
         const pathBounds = getPathBounds(prevPaths[index]);
         return !isPointInRange(x, y, pathBounds, eraserSize);
       })
     );
-    setPathAttributes((prevAttributes) => 
+    setPathAttributes((prevAttributes) =>
       prevAttributes.filter((_, index) => {
         const pathBounds = getPathBounds(paths[index]);
         return !isPointInRange(x, y, pathBounds, eraserSize);
@@ -89,10 +95,10 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
       .split(' ')
       .map(coord => coord.replace(/[ML]/g, ''))
       .map(coord => coord.split(',').map(Number));
-    
+
     const xCoords = coordinates.map(([x]) => x);
     const yCoords = coordinates.map(([, y]) => y);
-    
+
     return {
       minX: Math.min(...xCoords),
       maxX: Math.max(...xCoords),
@@ -103,9 +109,9 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
 
   const isPointInRange = (x, y, bounds, range) => {
     return x >= bounds.minX - range &&
-           x <= bounds.maxX + range &&
-           y >= bounds.minY - range &&
-           y <= bounds.maxY + range;
+      x <= bounds.maxX + range &&
+      y >= bounds.minY - range &&
+      y <= bounds.maxY + range;
   };
 
   const clearCanvas = () => {
@@ -144,53 +150,63 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
 
   const exportImage = async () => {
     try {
-            console.log("Export image triggered");
-            const svg = svgRef.current;
-    
-            if (!svg) {
-                throw new Error("SVG reference is not available.");
-            }
-            // Serialize the SVG to a string
-            const svgData = `
-              <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
-                ${paths.map(path => `<path d="${path}" stroke="black" stroke-width="2" fill="none"/>`).join('')}
-                ${currentPath && `<path d="${currentPath}" stroke="black" stroke-width="2" fill="none"/>`}
-              </svg>
-            `;
-            const svgContainer = document.createElement('div');
-            svgContainer.innerHTML = svgData;
-            document.body.appendChild(svgContainer);
+      console.log("Export image triggered");
+      const svg = svgRef.current;
 
-            // Wait for the SVG to be rendered, then use html2canvas
-            const jpegDataUrl = await new Promise((resolve, reject) => {
-              html2canvas(svgContainer, { width: 500, height: 500 }).then((canvas) => {
-                const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
-                resolve(jpegDataUrl);
-
-                // Create a download link for the JPEG image
-                const jpegLink = document.createElement('a');
-                jpegLink.href = jpegDataUrl;
-                jpegLink.download = 'image.jpeg';
-                jpegLink.click();
-                console.log("JPEG Download triggered");
-                // Clean up the temporary SVG container
-                document.body.removeChild(svgContainer);
-              }).catch(reject);
-            });
-
-            console.log("JPEG image generated");
-            return jpegDataUrl; // Return JPEG data URL
-
-            } catch (error) {
-            console.error('Error exporting image:', error);
-            alert('Failed to export image. Please try again.');
-            return null;
+      if (!svg) {
+        throw new Error("SVG reference is not available.");
+      }
+      // Serialize the SVG to a string
+      const svgData = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+          ${paths
+          .map(
+            (path, index) =>
+              `<path d="${path}" stroke="${pathAttributes[index]?.color || 'black'}" stroke-width="${pathAttributes[index]?.width || 2}" fill="none"/>`
+          )
+          .join('')}
+          ${currentPath &&
+        `<path d="${currentPath}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill="none"/>`
         }
-    };
-  
-    const loadImage = (base64data) => {
-      setSvgContent(base64data); // Set the SVG content to be rendered
-    };
+        </svg>
+      `;
+      const svgContainer = document.createElement('div');
+      svgContainer.innerHTML = svgData;
+      document.body.appendChild(svgContainer);
+
+      // Wait for the SVG to be rendered, then use html2canvas
+      const jpegDataUrl = await new Promise((resolve, reject) => {
+        html2canvas(svgContainer, { width: 500, height: 500 })
+          .then((canvas) => {
+            const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+            resolve(jpegDataUrl);
+
+            // Create a download link for the JPEG image
+            const jpegLink = document.createElement('a');
+            jpegLink.href = jpegDataUrl;
+            jpegLink.download = 'image.jpeg';
+            jpegLink.click();
+            console.log("JPEG Download triggered");
+          })
+          .catch(reject)
+          .finally(() => {
+            // Clean up the temporary SVG container
+            document.body.removeChild(svgContainer);
+          });
+      });
+
+      console.log("JPEG image generated");
+      return jpegDataUrl; // Return JPEG data URL
+    } catch (error) {
+      console.error('Error exporting image:', error);
+      alert('Failed to export image. Please try again.');
+      return null;
+    }
+  };
+
+  const loadImage = (base64data) => {
+    setSvgContent(base64data); // Set the SVG content to be rendered
+  };
 
   useImperativeHandle(ref, () => ({
     undoLastPath,
@@ -201,6 +217,8 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     setEraserSize,
     exportImage,
     loadImage,
+    canvasWidth: canvasDimensions.width,
+    canvasHeight: canvasDimensions.height,
   }));
 
   return (
@@ -227,7 +245,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
           ))}
         </View>
       </View>
-      
+
       <Pressable
         style={styles.canvas}
         onTouchStart={handleStart}
@@ -240,26 +258,28 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
         {svgContent ? (
           <SvgXml xml={svgContent} style={styles.svg} />
         ) : (
-        <Svg ref = {svgRef} style={styles.svg}>
-          {paths.map((path, index) => (
-            <Path
-              key={index}
-              d={path}
-              stroke={pathAttributes[index]?.color || 'black'}
-              strokeWidth={pathAttributes[index]?.width || 2}
-              fill="none"
-            />
-          ))}
-          {currentPath && (
-            <Path
-              d={currentPath}
-              stroke={strokeColor}
-              strokeWidth={strokeWidth}
-              fill="none"
-            />
-          )}
-          </Svg>
-      )}
+          <View style={styles.container} onLayout={handleLayout}>
+            <Svg ref={svgRef} width={canvasDimensions.width} height={canvasDimensions.height} style={styles.svg}>
+              {paths.map((path, index) => (
+                <Path
+                  key={index}
+                  d={path}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+              ))}
+              {currentPath && (
+                <Path
+                  d={currentPath}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+              )}
+            </Svg>
+          </View>
+        )}
       </Pressable>
 
       <View style={styles.actions}>
