@@ -38,6 +38,15 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
 
   useEffect(() => {
     if (object) {
+      
+      // Calculate the bounding box of the object
+      const box = new THREE.Box3().setFromObject(object);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+
+      // Translate the object to center it on the origin
+      object.position.sub(center);
+
       object.traverse((child) => {
         if (child.isMesh && child.geometry) {
           child.castShadow = true;
@@ -49,7 +58,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
             console.log(child.geometry.attributes.position);
-            texture.center.set(0.5,0.5);
+            texture.center.set(0.5, 0.5);
             console.log("texture center", texture.center)
             texture.rotation = 0
             // // Calculate new texture offset and repeat based on bounding box
@@ -89,7 +98,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
           object.rotation.y = Math.PI; // Rotate the head model to face the camera
         } else if (objPath.includes('torso')) {
           // object.rotation.y = -Math.PI; // Rotate the torso model to face the camera
-          object.rotation.x = -Math.PI;
+          object.rotation.x = -Math.PI / 2;
         } else if (objPath.includes('leg')) {
           // object.rotation.y = -Math.PI; // Rotate the leg model to face the camera
           object.rotation.x = -Math.PI;
@@ -422,7 +431,7 @@ const DrawingScreen = ({ navigation }) => {
                 shadow-bias={-0.0001}
               />
               <spotLight
-                position={[10, 10, 10]}
+                position={[0, 5, -5]}
                 angle={0.15}
                 penumbra={1}
                 intensity={1.5} // Increase the intensity of the spotlight
@@ -440,8 +449,32 @@ const DrawingScreen = ({ navigation }) => {
                 shadow-bias={-0.0001}
               />
               <directionalLight
-                position={[5, 5, 5]}
-                intensity={1.0} // Add a directional light for additional brightness
+                position={[0, 5, -5]}
+                intensity={1.5} // Add a directional light for additional brightness
+                castShadow
+                shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
+                shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
+                shadow-bias={-0.0001} // Adjust shadow bias to reduce shadow artifacts
+              />
+              <directionalLight
+                position={[0, -5, 5]}
+                intensity={1.5} // Add a directional light for additional brightness
+                castShadow
+                shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
+                shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
+                shadow-bias={-0.0001} // Adjust shadow bias to reduce shadow artifacts
+              />
+              <directionalLight
+                position={[0, -5, 5]}
+                intensity={1.5} // Add a directional light for additional brightness
+                castShadow
+                shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
+                shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
+                shadow-bias={-0.0001} // Adjust shadow bias to reduce shadow artifacts
+              />
+              <directionalLight
+                position={[0, 20, 10]}
+                intensity={1.5} // Add a directional light for additional brightness
                 castShadow
                 shadow-mapSize-width={2048} // Increase shadow map size for better quality shadows
                 shadow-mapSize-height={2048} // Increase shadow map size for better quality shadows
