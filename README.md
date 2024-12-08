@@ -1,3 +1,6 @@
+# Tattoo Doodler 
+## Ari, EK, Nico, Angela
+
 A tool that allows users to draw and project tattoos onto a 3D model. 
 
 To run locally: 
