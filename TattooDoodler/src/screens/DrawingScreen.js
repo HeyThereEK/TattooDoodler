@@ -72,13 +72,17 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
             // const textureRepeatX = (boundingBox.width / 100) * textureScale;
             // const textureRepeatY = (boundingBox.height / 100) * textureScale;
 
-            texture.offset.set(
-              THREE.MathUtils.clamp(textureOffsetX, 0, 1),
-              THREE.MathUtils.clamp(textureOffsetY, 0, 1)
-            );
+            // texture.offset.set(
+            //   THREE.MathUtils.clamp(textureOffsetX, 0, 1),
+            //   THREE.MathUtils.clamp(textureOffsetY, 0, 1)
+            // );
             console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
+
+            // texture.wrapS = THREE.ClampToEdgeWrapping; // Prevents wrapping beyond texture bounds
+            // texture.wrapT = THREE.ClampToEdgeWrapping;
+  
             child.material.needsUpdate = true;
           } else {
             child.material = new THREE.MeshPhysicalMaterial({ // Use MeshPhysicalMaterial for better shading
@@ -136,6 +140,32 @@ const DrawingScreen = ({ navigation }) => {
   const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
   const [textureScale, setTextureScale] = useState(0.4); // State to manage the scale of the texture
   const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
+
+  const handleImportModel = async () => {
+  // Create a file input element dynamically
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.obj'; // Restrict to .obj files
+
+  // Set up the file selection handler
+  input.onchange = (e) => {
+    const file = e.target.files[0]; // Get the selected file
+    if (file && file.name.endsWith('.obj')) {
+      const fileUri = URL.createObjectURL(file); // Generate a temporary URL for the file
+      console.log('Selected file:', fileUri);
+
+      // You can now set the file to your state or handle it further
+      setSelectedModel({ objPath: fileUri });
+      setModalVisible(false); // Close the modal
+    } else {
+      alert('Please select a valid .obj file');
+    }
+  };
+
+  // Trigger the file input dialog
+  input.click();
+};
+  
   
 
   const [boundingBox, setBoundingBox] = useState({
@@ -494,7 +524,7 @@ const DrawingScreen = ({ navigation }) => {
               <axesHelper args={[5]} />
               <Suspense fallback={null}>
                 <BodyPartModel
-                  objPath={selectedModel.objPath}
+                  objPath={selectedModel?.objPath}
                   texture={selectedTexture}
                   boundingBox={boundingBox}
                   textureScale={textureScale} // Pass the texture scale to the model
@@ -659,6 +689,14 @@ const DrawingScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Add Import Model Button */}
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleImportModel}
+            >
+              <Text style={styles.modalButtonText}>Import Custom Model</Text>
+              </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.modalButton}

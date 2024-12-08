@@ -157,8 +157,9 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
         throw new Error("SVG reference is not available.");
       }
       // Serialize the SVG to a string
+      console.log("canvas width, height:", canvasDimensions.width, canvasDimensions)
       const svgData = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+        <svg xmlns="http://www.w3.org/2000/svg" width="${canvasDimensions.width}" height="${canvasDimensions.height}" viewBox="0 0 ${canvasDimensions.width} ${canvasDimensions.height}">
           ${paths
           .map(
             (path, index) =>
@@ -176,7 +177,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
 
       // Wait for the SVG to be rendered, then use html2canvas
       const jpegDataUrl = await new Promise((resolve, reject) => {
-        html2canvas(svgContainer, { width: 500, height: 500 })
+        html2canvas(svgContainer, { width: canvasDimensions.width, height: canvasDimensions.height })
           .then((canvas) => {
             const jpegDataUrl = canvas.toDataURL('image/jpeg', 1.0);
             resolve(jpegDataUrl);
