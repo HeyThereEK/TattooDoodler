@@ -264,8 +264,8 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
                 <Path
                   key={index}
                   d={path}
-                  stroke={strokeColor}
-                  strokeWidth={strokeWidth}
+                  stroke={pathAttributes[index]?.color || 'black'}
+                  strokeWidth={pathAttributes[index]?.width || 2}
                   fill="none"
                 />
               ))}
