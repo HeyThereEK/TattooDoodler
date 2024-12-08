@@ -105,6 +105,11 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
           <Text style={styles.headerText}>My Designs</Text>
+          <Image
+            source={require('../../assets/TattooDoodlerLogo.png')} // Update the path to your logo
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <ScrollView style={styles.scrollView}>
@@ -160,6 +165,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#232324',
     borderBottomWidth: 1,
     borderBottomColor: '#232324',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerText: {
     fontSize: 32,
@@ -251,6 +259,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     height: 100,
     justifyContent: 'flex-end',
+  },
+  logo: {
+    width: 200, // Adjust the width as needed
+    height: 50,
+    // height: 200, // Adjust the height as needed
   },
 });
 

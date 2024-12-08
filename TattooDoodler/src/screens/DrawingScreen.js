@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useEffect, useState } from 'react';
+import React, {Suspense, useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,15 +15,15 @@ import { useFonts } from "expo-font";
 import * as ImagePicker from 'expo-image-picker';
 import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls} from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web'
-import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web'
+import {TitilliumWeb_300Light} from '@expo-google-fonts/titillium-web'
 import DrawingCanvas from '../components/DrawingCanvas';
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
-extend({ Div: THREE.Object3D })
+extend({ Div: THREE.Object3D})
 import { MeshNormalMaterial } from 'three';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
@@ -33,12 +33,8 @@ import { useRoute } from '@react-navigation/native';
 import { TouchableWithoutFeedback } from 'react-native';
 import { Slider } from 'react-native-elements';
 
-const BodyPartModel = ({ objPath, texture, boundingBox, textureScale }) => {
+const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
   const object = useLoader(OBJLoader, objPath);
-  const canvasRef = useRef(null);
-
-  const canvasWidth = canvasRef.current?.canvasWidth || 0;
-  const canvasHeight = canvasRef.current?.canvasHeight || 0;
 
   useEffect(() => {
     if (object) {
@@ -57,11 +53,12 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale }) => {
           child.receiveShadow = true;
           console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
           console.log('UV Attributes array:', child.geometry.attributes.uv.array);
+          const uvArray = child.geometry.attributes.uv.array;
           if (texture) {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
             console.log(child.geometry.attributes.position);
-            texture.center.set(0.5, 0.5);
+            texture.center.set(0.5,0.5);
             console.log("texture center", texture.center)
             texture.rotation = 0
             // // Calculate new texture offset and repeat based on bounding box
@@ -70,8 +67,8 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale }) => {
             const textureOffsetX = (boundingBox.x / boundingBox.width) - 0.5;
             const textureOffsetY = (boundingBox.y / boundingBox.height) - 0.5;
 
-            const textureRepeatX = (100 / boundingBox.width) / textureScale;
-            const textureRepeatY = (100 / boundingBox.height) / textureScale;
+            const textureRepeatX = (100 / boundingBox.width) / textureScale; 
+            const textureRepeatY = (100 / boundingBox.height) / textureScale; 
             // const textureRepeatX = (boundingBox.width / 100) * textureScale;
             // const textureRepeatY = (boundingBox.height / 100) * textureScale;
 
@@ -118,7 +115,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale }) => {
     object={object}
     scale={[0.15, 0.15, 0.15]} // Reduce size to fit the scene
     position={[0, 0, 0]} // Center the model
-  />;
+    />;
 };
 
 const DrawingScreen = ({ navigation }) => {
@@ -139,11 +136,7 @@ const DrawingScreen = ({ navigation }) => {
   const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
   const [textureScale, setTextureScale] = useState(0.4); // State to manage the scale of the texture
   const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
-
-  // Access dynamic canvas dimensions
-  const canvasWidth = canvasRef.current?.canvasWidth || 0;
-  const canvasHeight = canvasRef.current?.canvasHeight || 0;
-
+  
 
   const [boundingBox, setBoundingBox] = useState({
     x: 90, // initial X position
@@ -196,7 +189,7 @@ const DrawingScreen = ({ navigation }) => {
       height: data.size.height,
     });
   };
-
+  
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
   // Generate texture on demand
@@ -206,7 +199,7 @@ const DrawingScreen = ({ navigation }) => {
       console.warn('No drawing found to export!');
       return;
     }
-    try {
+    try{
       const texture = new THREE.TextureLoader().load(
         tattoo
       );
@@ -215,7 +208,7 @@ const DrawingScreen = ({ navigation }) => {
       setSelectedTexture(texture);
       console.log("New texture selected");
       setIsTattooApplied(true);
-    } catch (error) {
+    }catch (error){
       console.error('Error loading texture:', error);
     }
   };
@@ -227,13 +220,13 @@ const DrawingScreen = ({ navigation }) => {
         alert('Sorry, we need camera roll permissions to make this work!');
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false,
         quality: 1,
       });
-
+  
       if (!result.canceled) {
         const uri = result.assets[0].uri;
         const texture = new THREE.TextureLoader().load(uri);
@@ -245,79 +238,79 @@ const DrawingScreen = ({ navigation }) => {
       console.error('Error picking image:', err);
     }
   };
+  
 
+    // Add a body part
+    const handleImageSelect = (bodyPart) => {
+      console.log(`Selected: ${bodyPart}`);
+      setModalVisible(false); // Close the modal
+      // Set the selected 3D model file
+      const modelPath = getModelPath(bodyPart);
+      setSelectedModel(modelPath,);
+    };
 
-  // Add a body part
-  const handleImageSelect = (bodyPart) => {
-    console.log(`Selected: ${bodyPart}`);
-    setModalVisible(false); // Close the modal
-    // Set the selected 3D model file
-    const modelPath = getModelPath(bodyPart);
-    setSelectedModel(modelPath,);
-  };
+    // Helper function to return path based on selected body part
+    const getModelPath = (bodyPart) => {
+      switch (bodyPart) {
+        case 'head':
+          return {
+            objPath: 'head.obj'
+      }; 
+        case 'arm':
+          return {
+            objPath: 'arm.obj'
+      };
+        case 'leg':
+          return {
+            objPath: 'leg.obj'
+      };
+        case 'torso':
+          return {
+            objPath: 'torso.obj'
+      };
+        default:
+          return null;
+      }
+    };
 
-  // Helper function to return path based on selected body part
-  const getModelPath = (bodyPart) => {
-    switch (bodyPart) {
-      case 'head':
-        return {
-          objPath: 'head.obj'
-        };
-      case 'arm':
-        return {
-          objPath: 'arm.obj'
-        };
-      case 'leg':
-        return {
-          objPath: 'leg.obj'
-        };
-      case 'torso':
-        return {
-          objPath: 'torso.obj'
-        };
-      default:
-        return null;
-    }
-  };
+    // Function to change body part (reset the selected model and open the modal)
+    const changeBodyPart = () => {
+      setModalVisible(true);
+      setSelectedModel(null); // Reset the current model
+    };
 
-  // Function to change body part (reset the selected model and open the modal)
-  const changeBodyPart = () => {
-    setModalVisible(true);
-    setSelectedModel(null); // Reset the current model
-  };
-
-  // Toggle grid visibility
-  const toggleGrid = () => setShowGrid((prev) => !prev);
-
-  // Call this function when you want to save the drawing
-  const handleSaveDesign = async () => {
-    const design = await canvasRef.current?.exportImage();
-    if (design) {
-      await saveDesign(design);
-    } else {
-      console.warn('No design found to save!');
-    }
-  };
-
-  const handleNavigateHome = () => {
-    if (!isDesignSaved) {
-      setIsSaveModalVisible(true); // Show the save modal if the design is not saved
-    } else {
-      navigation.navigate('Home'); // Navigate to home if the design is already saved
-    }
-  };
-
-  const handleSaveAndNavigateHome = async () => {
-    await handleSaveDesign(); // Save the design
-    setIsDesignSaved(true); // Mark the design as saved
-    setIsSaveModalVisible(false); // Hide the save modal
-    navigation.navigate('Home'); // Navigate to home
-  };
-
-  const handleDiscardAndNavigateHome = () => {
-    setIsSaveModalVisible(false); // Hide the save modal
-    navigation.navigate('Home'); // Navigate to home
-  };
+    // Toggle grid visibility
+    const toggleGrid = () => setShowGrid((prev) => !prev);
+    
+    // Call this function when you want to save the drawing
+    const handleSaveDesign = async () => {
+      const design = await canvasRef.current?.exportImage();
+      if (design) {
+        await saveDesign(design);
+      } else {
+        console.warn('No design found to save!');
+      }
+    };
+  
+    const handleNavigateHome = () => {
+      if (!isDesignSaved) {
+        setIsSaveModalVisible(true); // Show the save modal if the design is not saved
+      } else {
+        navigation.navigate('Home'); // Navigate to home if the design is already saved
+      }
+    };
+    
+    const handleSaveAndNavigateHome = async () => {
+      await handleSaveDesign(); // Save the design
+      setIsDesignSaved(true); // Mark the design as saved
+      setIsSaveModalVisible(false); // Hide the save modal
+      navigation.navigate('Home'); // Navigate to home
+    };
+    
+    const handleDiscardAndNavigateHome = () => {
+      setIsSaveModalVisible(false); // Hide the save modal
+      navigation.navigate('Home'); // Navigate to home
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -381,16 +374,25 @@ const DrawingScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.centerTools}>
+        <Image
+            source={require('../../assets/TattooDoodlerLogo.png')} // Update the path to your logo
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+
         <View style={styles.rightTools}>
-          <TouchableOpacity
+          <TouchableOpacity 
             style={[styles.toolButton, styles.eraserButton]}
             onPress={() => setSelectedTool('eraser')}
           >
             <MaterialCommunityIcons name="eraser" size={24} color="white" />
             <Text style={styles.toolText}>Eraser</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
+          
+          <TouchableOpacity 
             style={[styles.toolButton, styles.penButton]}
             onPress={() => setSelectedTool('pen')}
           >
@@ -402,7 +404,7 @@ const DrawingScreen = ({ navigation }) => {
             <Text style={styles.toolText}>Color Wheel</Text>
           </TouchableOpacity> */}
 
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.toolButton}
             onPress={handleNavigateHome}
           >
@@ -516,7 +518,7 @@ const DrawingScreen = ({ navigation }) => {
           >
             <TouchableWithoutFeedback onPress={() => setIsSaveModalVisible(false)}>
               <View style={styles.modalOverlay}>
-                <TouchableWithoutFeedback onPress={() => { }}>
+                <TouchableWithoutFeedback onPress={() => {}}>
                   <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>Save Your Design</Text>
                     <Text style={styles.modalMessage}>You have unsaved changes.</Text>
@@ -557,69 +559,55 @@ const DrawingScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          {isTattooApplied && (
-            <>
-              {/* Slider to adjust texture scale */}
-              <Slider
-                style={styles.slider}
-                minimumValue={0.01}
-                maximumValue={.8}
-                value={textureScale}
-                onValueChange={setTextureScale}
-                thumbStyle={styles.thumb}
-              />
+      {isTattooApplied && (
+        <>
+          {/* Slider to adjust texture scale */}
+          <Slider
+            style={styles.slider}
+            minimumValue={0.01}
+            maximumValue={.8}
+            value={textureScale}
+            onValueChange={setTextureScale}
+            thumbStyle={styles.thumb}
+          />
 
-              {/* Resizable bounding box */}
-              <BodyPartModel
-                objPath={selectedModel?.objPath}
-                texture={selectedTexture}
-                boundingBox={boundingBox}
-                textureScale={textureScale}
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
-              />
-              <div>
-                <Draggable
-                  bounds={{
-                    left: 0,
-                    top: 0,
-                    right: canvasWidth - boundingBox.width,
-                    bottom: canvasHeight - boundingBox.height,
-                  }}
-                  position={{ x: boundingBox.x, y: boundingBox.y }}
-                  onDrag={(e, data) => {
-                    setBoundingBox((prev) => ({
-                      ...prev,
-                      x: data.x,
-                      y: data.y,
-                    }));
-                  }}
-                >
-                  <ResizableBox
-                    width={boundingBox.width}
-                    height={boundingBox.height}
-                    minConstraints={[canvasWidth * 0.1, canvasHeight * 0.1]} // Example minimum size
-                    maxConstraints={[canvasWidth, canvasHeight]}
-                    lockAspectRatio
-                    onResizeStop={(e, { size }) => {
-                      setBoundingBox((prev) => ({
-                        ...prev,
-                        width: size.width,
-                        height: size.height,
-                      }));
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: boundingBox.y,
-                      left: boundingBox.x,
-                      borderWidth: 3,
-                      borderColor: 'white',
-                      borderStyle: 'solid',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Draggable>
-              </div>
+          {/* Resizable bounding box */}
+          <Draggable
+            bounds={{
+              left: 0,
+              top: 0,
+              right: 400 - boundingBox.width, // Adjust based on parent width and box width
+              bottom: 650 - boundingBox.height, // Adjust based on parent height and box height
+            }}
+            position={{ x: boundingBox.x, y: boundingBox.y }}
+            onDrag={(e, data) => {
+              setBoundingBox((prev) => ({
+                ...prev,
+                x: data.x,
+                y: data.y,
+              }));
+            }}
+            onStop={(e, data) => {
+              console.log(`Dragged to: ${data.x}, ${data.y}`);
+            }}
+          >
+            <ResizableBox
+              width={boundingBox.width}
+              height={boundingBox.height}
+              minConstraints={[1, 1]}
+              maxConstraints={[356, 616]}
+              onResizeStop={handleResize}
+              style={{
+                position: 'absolute',
+                top: boundingBox.y,
+                left: boundingBox.x,
+                borderWidth: 3,
+                borderColor: 'white',
+                borderStyle: 'solid',
+                backgroundColor: 'transparent',
+              }}
+            />
+              </Draggable>
             </>
           )}
         </View>
@@ -629,7 +617,7 @@ const DrawingScreen = ({ navigation }) => {
           <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
 
           <TouchableOpacity style={styles.toolButton} onPress={applyDrawingToTexture}>
-            <Text style={styles.toolText}>Apply Tattoo</Text>
+          <Text style={styles.toolText}>Apply Tattoo</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -705,6 +693,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  centerTools: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   rightTools: {
     flexDirection: 'row',
     gap: 8,
@@ -738,7 +730,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '400',
     fontSize: 16,
-    fontFamily: 'TitilliumWeb_300Light',
+    fontFamily: 'TitilliumWeb_300Light',    
   },
   drawingContainer: {
     flex: 1,
@@ -941,6 +933,11 @@ const styles = StyleSheet.create({
     // borderRadius: 10, // Make the thumb circular
     // borderWidth: 2,
     // borderColor: '#FFFFFF', // Optional: Add a border color
+  },
+  logo: {
+    width: 175, // Adjust the width as needed
+    height: 50,
+    // height: 200, // Adjust the height as needed
   },
 });
 
