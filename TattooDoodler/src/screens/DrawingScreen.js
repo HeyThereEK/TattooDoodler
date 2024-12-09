@@ -183,52 +183,20 @@ const DrawingScreen = ({ navigation }) => {
     }
   }, [design]);
 
-  // Function to load the design into the canvas (old version)
-  // const loadDesign = async (design) => {
-  //   try {
-  //     const response = await fetch(design);
-  //     const blob = await response.blob();
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       const base64data = reader.result;
-  //       canvasRef.current?.loadImage(base64data); // Load the image into the canvas
-  //     };
-  //     reader.readAsDataURL(blob);
-  //   } catch (error) {
-  //     console.error('Error loading design:', error);
-  //   }
-  // };
-
-  // Function to load the design into the canvas (new version)
+  // Function to load the design into the canvas (svg only)
   const loadDesign = async (design) => {
     try {
-      const { design: imageData, svgData } = design;
-      const response = await fetch(imageData);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        canvasRef.current?.loadImage(base64data); // Load the image into the canvas
+      const { svgData } = design;
+      if (svgData) {
         canvasRef.current?.loadSVG(svgData); // Load the SVG data into the canvas
-      };
-      reader.readAsDataURL(blob);
+      } else {
+        console.warn('No SVG data found to load!');
+      }
     } catch (error) {
       console.error('Error loading design:', error);
     }
   };
 
-  // Function to save the drawing/design
-  // const saveDesign = async (design) => {
-  //   try {
-  //     const designs = await AsyncStorage.getItem('designs');
-  //     const designsArray = designs ? JSON.parse(designs) : [];
-  //     designsArray.push(design);
-  //     await AsyncStorage.setItem('designs', JSON.stringify(designsArray));
-  //     console.log('Design saved successfully');
-  //   } catch (error) {
-  //     console.error('Error saving design:', error);
-  //   }
-  // };
   const saveDesign = async (design) => {
     try {
       const designs = await AsyncStorage.getItem('designs');
@@ -350,14 +318,25 @@ const DrawingScreen = ({ navigation }) => {
     //   } else {
     //     console.warn('No design found to save!');
     //   }
-    // };
+  // };
+  // Function to save the drawing/design, image and svg
+    // const handleSaveDesign = async () => {
+    //   const design = await canvasRef.current?.exportImage();
+    //   const svgData = await canvasRef.current?.exportSVG();
+    //   if (design && svgData) {
+    //     await saveDesign({ design, svgData });
+    //   } else {
+    //     console.warn('No design found to save!');
+    //   }
+  // };
+
+    // Function to save the drawing/design, svg only
     const handleSaveDesign = async () => {
-      const design = await canvasRef.current?.exportImage();
       const svgData = await canvasRef.current?.exportSVG();
-      if (design && svgData) {
-        await saveDesign({ design, svgData });
+      if (svgData) {
+        await saveDesign({ svgData });
       } else {
-        console.warn('No design found to save!');
+        console.warn('No SVG data found to save!');
       }
     };
   

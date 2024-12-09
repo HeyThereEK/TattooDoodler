@@ -239,8 +239,21 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     setSvgContent(base64data); // Set the SVG content to be rendered
   };
 
+  const parseSVG = (svgData) => {
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgData, 'image/svg+xml');
+    const paths = Array.from(svgDoc.querySelectorAll('path'));
+    return paths.map(path => ({
+      d: path.getAttribute('d'),
+      stroke: path.getAttribute('stroke') || 'black',
+      strokeWidth: parseFloat(path.getAttribute('stroke-width')) || 2,
+    }));
+  };
+
   const loadSVG = (svgData) => {
-    setSvgContent(svgData); // Set the SVG content to be rendered
+    const parsedPaths = parseSVG(svgData);
+    setPaths(parsedPaths.map(p => p.d));
+    setPathAttributes(parsedPaths.map(p => ({ color: p.stroke, width: p.strokeWidth })));
   };
 
   useImperativeHandle(ref, () => ({
