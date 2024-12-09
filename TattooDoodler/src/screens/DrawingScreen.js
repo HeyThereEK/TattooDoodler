@@ -72,10 +72,10 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
             // const textureRepeatX = (boundingBox.width / 100) * textureScale;
             // const textureRepeatY = (boundingBox.height / 100) * textureScale;
 
-            // texture.offset.set(
-            //   THREE.MathUtils.clamp(textureOffsetX, 0, 1),
-            //   THREE.MathUtils.clamp(textureOffsetY, 0, 1)
-            // );
+            texture.offset.set(
+              THREE.MathUtils.clamp(textureOffsetX, 0, 1),
+              THREE.MathUtils.clamp(textureOffsetY, 0, 1)
+            );
             console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
             console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
@@ -183,14 +183,33 @@ const DrawingScreen = ({ navigation }) => {
     }
   }, [design]);
 
+  // Function to load the design into the canvas (old version)
+  // const loadDesign = async (design) => {
+  //   try {
+  //     const response = await fetch(design);
+  //     const blob = await response.blob();
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       const base64data = reader.result;
+  //       canvasRef.current?.loadImage(base64data); // Load the image into the canvas
+  //     };
+  //     reader.readAsDataURL(blob);
+  //   } catch (error) {
+  //     console.error('Error loading design:', error);
+  //   }
+  // };
+
+  // Function to load the design into the canvas (new version)
   const loadDesign = async (design) => {
     try {
-      const response = await fetch(design);
+      const { design: imageData, svgData } = design;
+      const response = await fetch(imageData);
       const blob = await response.blob();
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64data = reader.result;
         canvasRef.current?.loadImage(base64data); // Load the image into the canvas
+        canvasRef.current?.loadSVG(svgData); // Load the SVG data into the canvas
       };
       reader.readAsDataURL(blob);
     } catch (error) {
@@ -199,6 +218,17 @@ const DrawingScreen = ({ navigation }) => {
   };
 
   // Function to save the drawing/design
+  // const saveDesign = async (design) => {
+  //   try {
+  //     const designs = await AsyncStorage.getItem('designs');
+  //     const designsArray = designs ? JSON.parse(designs) : [];
+  //     designsArray.push(design);
+  //     await AsyncStorage.setItem('designs', JSON.stringify(designsArray));
+  //     console.log('Design saved successfully');
+  //   } catch (error) {
+  //     console.error('Error saving design:', error);
+  //   }
+  // };
   const saveDesign = async (design) => {
     try {
       const designs = await AsyncStorage.getItem('designs');
@@ -313,10 +343,19 @@ const DrawingScreen = ({ navigation }) => {
     const toggleGrid = () => setShowGrid((prev) => !prev);
     
     // Call this function when you want to save the drawing
+    // const handleSaveDesign = async () => {
+    //   const design = await canvasRef.current?.exportImage();
+    //   if (design) {
+    //     await saveDesign(design);
+    //   } else {
+    //     console.warn('No design found to save!');
+    //   }
+    // };
     const handleSaveDesign = async () => {
       const design = await canvasRef.current?.exportImage();
-      if (design) {
-        await saveDesign(design);
+      const svgData = await canvasRef.current?.exportSVG();
+      if (design && svgData) {
+        await saveDesign({ design, svgData });
       } else {
         console.warn('No design found to save!');
       }

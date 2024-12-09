@@ -58,7 +58,6 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     }
   };
 
-
   const handleEnd = () => {
     if (selectedTool === 'pen' && currentPath) {
       setPaths((prevPaths) => [...prevPaths, currentPath]);
@@ -205,8 +204,43 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     }
   };
 
+  const exportSVG = async () => {
+    try {
+      const svg = svgRef.current;
+
+      if (!svg) {
+        throw new Error("SVG reference is not available.");
+      }
+
+      // Serialize the SVG to a string
+      const svgData = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${canvasDimensions.width}" height="${canvasDimensions.height}" viewBox="0 0 ${canvasDimensions.width} ${canvasDimensions.height}">
+          ${paths
+          .map(
+            (path, index) =>
+              `<path d="${path}" stroke="${pathAttributes[index]?.color || 'black'}" stroke-width="${pathAttributes[index]?.width || 2}" fill="none"/>`
+          )
+          .join('')}
+          ${currentPath &&
+        `<path d="${currentPath}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill="none"/>`
+        }
+        </svg>
+      `;
+
+      return svgData;
+    } catch (error) {
+      console.error('Error exporting SVG:', error);
+      alert('Failed to export SVG. Please try again.');
+      return null;
+    }
+  };
+
   const loadImage = (base64data) => {
     setSvgContent(base64data); // Set the SVG content to be rendered
+  };
+
+  const loadSVG = (svgData) => {
+    setSvgContent(svgData); // Set the SVG content to be rendered
   };
 
   useImperativeHandle(ref, () => ({
@@ -217,7 +251,9 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     setStrokeWidth,
     setEraserSize,
     exportImage,
+    exportSVG,
     loadImage,
+    loadSVG,
     canvasWidth: canvasDimensions.width,
     canvasHeight: canvasDimensions.height,
   }));
