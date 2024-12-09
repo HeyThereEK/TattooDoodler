@@ -347,7 +347,38 @@ const DrawingScreen = ({ navigation }) => {
       {/* Toolbar */}
       <View style={styles.toolbar}>
         <View style={styles.leftTools}>
-          <View style={styles.dropdownContainer}>
+          <TouchableOpacity 
+            style={styles.toolButton}
+            onPress={handleNavigateHome}
+          >
+            <MaterialIcons name="home" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.undoLastPath()}
+          >
+            <MaterialIcons name="undo" size={24} color="white" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.toolButton}
+            onPress={() => canvasRef.current?.redoLastPath()}
+          >
+            <MaterialIcons name="redo" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.centerTools}>
+        <Image
+            source={require('../../assets/TattooDoodlerLogo.png')} // Update the path to your logo
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+
+        <View style={styles.rightTools}>
+        <View style={styles.dropdownContainer}>
             <TouchableOpacity style={styles.toolButton} onPress={toggleDropdown}>
               <MaterialCommunityIcons name="chevron-down-circle-outline" size={24} color="white" />
             </TouchableOpacity>
@@ -388,32 +419,6 @@ const DrawingScreen = ({ navigation }) => {
               </View>
             )}
           </View>
-
-          <TouchableOpacity
-            style={styles.toolButton}
-            onPress={() => canvasRef.current?.undoLastPath()}
-          >
-            <MaterialIcons name="undo" size={24} color="white" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.toolButton}
-            onPress={() => canvasRef.current?.redoLastPath()}
-          >
-            <MaterialIcons name="redo" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.centerTools}>
-        <Image
-            source={require('../../assets/TattooDoodlerLogo.png')} // Update the path to your logo
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-
-        <View style={styles.rightTools}>
           <TouchableOpacity 
             style={[styles.toolButton, styles.eraserButton]}
             onPress={() => setSelectedTool('eraser')}
@@ -433,13 +438,6 @@ const DrawingScreen = ({ navigation }) => {
           {/* <TouchableOpacity style={[styles.toolButton, styles.colorWheel]}>
             <Text style={styles.toolText}>Color Wheel</Text>
           </TouchableOpacity> */}
-
-          <TouchableOpacity 
-            style={styles.toolButton}
-            onPress={handleNavigateHome}
-          >
-            <MaterialIcons name="home" size={24} color="white" />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -532,11 +530,15 @@ const DrawingScreen = ({ navigation }) => {
               </Suspense>
             </Canvas>
           ) : (
-            <View style={styles.bodyPartSelector}>
-              <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Pressable
+              style={({ hovered }) => [
+                styles.bodyPartSelector,
+                hovered && { backgroundColor: '#505050' },
+              ]}
+              onPress={() => setModalVisible(true)}
+              >
                 <Text style={styles.selectorText}>SELECT A BODY PART</Text>
-              </TouchableOpacity>
-            </View>
+                </Pressable>
           )}
 
           {/* Save Modal */}
@@ -691,12 +693,21 @@ const DrawingScreen = ({ navigation }) => {
             </View>
 
             {/* Add Import Model Button */}
-            <TouchableOpacity
-              style={styles.modalButton}
+            {/* <TouchableOpacity
+              style={styles.smallerModalButton}
               onPress={handleImportModel}
             >
-              <Text style={styles.modalButtonText}>Import Custom Model</Text>
-              </TouchableOpacity>
+              <Text style={styles.smallerModalButtonText}>Import Custom Model</Text>
+            </TouchableOpacity> */}
+            <Pressable
+              style={({ hovered }) => [
+                styles.smallerModalButton,
+                hovered && { backgroundColor: '#505050' },
+              ]}
+              onPress={handleImportModel}
+            >
+              <Text style={styles.smallerModalButtonText}>Import Custom Model</Text>
+            </Pressable>
 
             <TouchableOpacity
               style={styles.modalButton}
@@ -839,19 +850,31 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 5,
   },
   modalButtonText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'TitilliumWeb_300Light',
+  },
+  smallerModalButton: { 
+    backgroundColor: '#2c2c2c',
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  smallerModalButtonText: {
+    fontSize: 18,
+    fontFamily: 'TitilliumWeb_300Light',
+    color: '#878787',
   },
   imageGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   imageButton: {
     width: 100,
