@@ -147,6 +147,20 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
     });
   };
 
+  const handleColorChange = (color) => {
+    setStrokeColor(color);
+    if (selectedTool === 'eraser') {
+      onToolChange('pen'); // Automatically switch to pen
+    }
+  };
+
+  const handleSizeChange = (size) => {
+    setStrokeWidth(size);
+    if (selectedTool === 'eraser') {
+      onToolChange('pen'); // Automatically switch to pen
+    }
+  };
+
   const exportImage = async () => {
     try {
       console.log("Export image triggered");
@@ -279,7 +293,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
             <TouchableOpacity
               key={color}
               style={[styles.colorButton, { backgroundColor: color }]}
-              onPress={() => setStrokeColor(color)}
+              onPress={() => handleColorChange(color)}
             />
           ))}
         </View>
@@ -288,7 +302,7 @@ const DrawingCanvas = forwardRef(({ selectedTool, onToolChange }, ref) => {
             <TouchableOpacity
               key={size}
               style={[styles.sizeButton, strokeWidth === size && styles.selectedSize]}
-              onPress={() => setStrokeWidth(size)}
+              onPress={() => handleSizeChange(size)}
             >
               <View style={[styles.sizePreview, { width: size * 2, height: size * 2 }]} />
             </TouchableOpacity>

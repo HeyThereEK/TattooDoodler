@@ -131,7 +131,7 @@ const HomeScreen = ({ navigation }) => {
                 style={[styles.designCard, { width: cardWidth }]}
                 onPress={() => navigation.navigate('Drawing', { design })}
               >
-                <Image source={{ uri: design }} style={styles.thumbnail} />
+                <Image source={{ uri: design.jpegData }} style={styles.thumbnail} />
                 <View style={styles.cardInfo}>
                   <Text style={styles.designTitle}>Design {index + 1}</Text>
                 </View>

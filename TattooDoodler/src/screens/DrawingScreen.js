@@ -141,6 +141,10 @@ const DrawingScreen = ({ navigation }) => {
   const [textureScale, setTextureScale] = useState(0.4); // State to manage the scale of the texture
   const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
 
+  const handleToolChange = (tool) => {
+    setSelectedTool(tool);
+  };
+
   const handleImportModel = async () => {
   // Create a file input element dynamically
   const input = document.createElement('input');
@@ -166,8 +170,6 @@ const DrawingScreen = ({ navigation }) => {
   input.click();
 };
   
-  
-
   const [boundingBox, setBoundingBox] = useState({
     x: 90, // initial X position
     y: 75, // initial Y position
@@ -309,34 +311,25 @@ const DrawingScreen = ({ navigation }) => {
 
     // Toggle grid visibility
     const toggleGrid = () => setShowGrid((prev) => !prev);
-    
-    // Call this function when you want to save the drawing
-    // const handleSaveDesign = async () => {
-    //   const design = await canvasRef.current?.exportImage();
-    //   if (design) {
-    //     await saveDesign(design);
-    //   } else {
-    //     console.warn('No design found to save!');
-    //   }
-  // };
-  // Function to save the drawing/design, image and svg
-    // const handleSaveDesign = async () => {
-    //   const design = await canvasRef.current?.exportImage();
-    //   const svgData = await canvasRef.current?.exportSVG();
-    //   if (design && svgData) {
-    //     await saveDesign({ design, svgData });
-    //   } else {
-    //     console.warn('No design found to save!');
-    //   }
-  // };
 
     // Function to save the drawing/design, svg only
+    // const handleSaveDesign = async () => {
+    //   const svgData = await canvasRef.current?.exportSVG();
+    //   if (svgData) {
+    //     await saveDesign({ svgData });
+    //   } else {
+    //     console.warn('No SVG data found to save!');
+    //   }
+    // };
+  
+    // Function to save the drawing/design, svg and jpeg
     const handleSaveDesign = async () => {
       const svgData = await canvasRef.current?.exportSVG();
-      if (svgData) {
-        await saveDesign({ svgData });
+      const jpegData = await canvasRef.current?.exportImage(); // Assuming exportImage returns a JPEG data URL
+      if (svgData && jpegData) {
+        await saveDesign({ svgData, jpegData });
       } else {
-        console.warn('No SVG data found to save!');
+        console.warn('No SVG or JPEG data found to save!');
       }
     };
   
@@ -439,7 +432,7 @@ const DrawingScreen = ({ navigation }) => {
           </View>
           <TouchableOpacity 
             style={[styles.toolButton, styles.eraserButton]}
-            onPress={() => setSelectedTool('eraser')}
+            onPress={() => handleToolChange('eraser')}
           >
             <MaterialCommunityIcons name="eraser" size={24} color="white" />
             <Text style={styles.toolText}>Eraser</Text>
@@ -447,7 +440,7 @@ const DrawingScreen = ({ navigation }) => {
           
           <TouchableOpacity 
             style={[styles.toolButton, styles.penButton]}
-            onPress={() => setSelectedTool('pen')}
+            onPress={() => handleToolChange('pen')}
           >
             <MaterialIcons name="draw" size={24} color="white" />
             <Text style={styles.toolText}>Pen</Text>
@@ -664,7 +657,7 @@ const DrawingScreen = ({ navigation }) => {
 
         <View style={styles.rightPanel}>
           <Text style={styles.canvasLabel}>Sketchpad</Text>
-          <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} />
+          <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} onToolChange={handleToolChange} />
 
           <TouchableOpacity style={styles.toolButton} onPress={applyDrawingToTexture}>
           <Text style={styles.toolText}>Apply Tattoo</Text>
