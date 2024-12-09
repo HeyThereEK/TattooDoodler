@@ -51,9 +51,9 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale}) => {
         if (child.isMesh && child.geometry) {
           child.castShadow = true;
           child.receiveShadow = true;
-          console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
-          console.log('UV Attributes array:', child.geometry.attributes.uv.array);
-          const uvArray = child.geometry.attributes.uv.array;
+          // console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
+          // console.log('UV Attributes array:', child.geometry.attributes.uv.array);
+          // const uvArray = child.geometry.attributes.uv.array;
           if (texture) {
             child.material.map = texture; // Apply texture
             console.log('Applying texture:', texture);
