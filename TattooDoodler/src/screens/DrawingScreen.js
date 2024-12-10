@@ -630,7 +630,7 @@ const DrawingScreen = ({ navigation }) => {
               <Slider
                 style={styles.slider}
                 minimumValue={0.01}
-                maximumValue={.8}
+                maximumValue={.2}
                 value={textureScale}
                 onValueChange={setTextureScale}
                 thumbStyle={styles.thumb}
@@ -900,8 +900,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
     padding: 8,
     paddingVertical: 4,
+    marginTop: 8,
     borderRadius: 6,
-    marginLeft: 10
+    // marginLeft: 10
   },
   toggleButtonText: {
     color: '#FFF',
@@ -996,9 +997,9 @@ const styles = StyleSheet.create({
     fontFamily: 'TitilliumWeb_300Light',
   },
   slider: {
-    width: '80%',
+    width: '70%',
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: 8,
   },
   thumb: {
     width: 20, // Adjust the size of the thumb
