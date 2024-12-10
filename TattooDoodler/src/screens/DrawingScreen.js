@@ -13,6 +13,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useFonts } from "expo-font";
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import * as ImagePicker from 'expo-image-picker';
 import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
@@ -26,7 +27,6 @@ import * as THREE from 'three';
 import { extend } from '@react-three/fiber'
 extend({ Div: THREE.Object3D })
 import { MeshNormalMaterial } from 'three';
-import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css'; // Required for styling the resizable box
 import Draggable from 'react-draggable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,7 +34,7 @@ import { useRoute } from '@react-navigation/native';
 import { TouchableWithoutFeedback } from 'react-native';
 import { Slider } from 'react-native-elements';
 
-const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidth, canvasHeight, skintoneColor }) => {
+const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidth, canvasHeight, onModelLoaded, skintoneColor }) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -96,9 +96,13 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidt
       } else {
         object.rotation.y = Math.PI;
       }
-    }
-  }, [object, texture, boundingBox, textureScale, canvasWidth, canvasHeight, skintoneColor]);
 
+      if (typeof onModelLoaded === 'function') {
+        onModelLoaded(object);
+      }
+    }
+
+  }, [object, texture, boundingBox, textureScale, canvasWidth, canvasHeight, skintoneColor]);
   return (
     <primitive
       object={object}
@@ -129,6 +133,7 @@ const DrawingScreen = ({ navigation }) => {
   const [leftPanelDimensions, setLeftPanelDimensions] = useState({ width: 0, height: 0 });
   const canvasWidth = canvasRef.current?.canvasWidth || 0;
   const canvasHeight = canvasRef.current?.canvasHeight || 0;
+  const [loadedObject, setLoadedObject] = useState(null);
   const [skintoneColor, setSkintoneColor] = useState('#935d47'); // Default skintone color
 
   const handleToolChange = (tool) => {
@@ -300,6 +305,36 @@ const DrawingScreen = ({ navigation }) => {
     setSelectedModel(null); // Reset the current model
   };
 
+  const handleDownloadModel = () => {
+    if (!loadedObject) {
+      console.warn('No model to export');
+      return;
+    }
+
+    const sceneToExport = new THREE.Scene();
+    sceneToExport.add(loadedObject);
+
+    const exporter = new GLTFExporter();
+    exporter.parse(sceneToExport, (result) => {
+        // result is an ArrayBuffer for binary, or a JSON for non-binary
+        // We'll export binary .glb
+        const blob = new Blob([result], { type: 'model/gltf-binary' });
+        const url = URL.createObjectURL(blob);
+
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'model.glb';
+        link.click();
+
+        // Clean up
+        URL.revokeObjectURL(url);
+      },
+      { binary: true } // ensures we get a .glb
+    );
+  };
+
+
   // Toggle grid visibility
   const toggleGrid = () => setShowGrid((prev) => !prev);
 
@@ -401,11 +436,12 @@ const DrawingScreen = ({ navigation }) => {
                     styles.dropdownButton,
                     hovered && styles.dropdownButtonHovered,
                   ]}
-                  onPress={canvasRef.current?.exportImage} // Call the exportImage function
+                  onPress={handleDownloadModel} // Now exports model instead of drawing
                 >
                   <MaterialIcons name="file-download" size={24} color="white" />
-                  <Text style={styles.dropdownButtonText}>Download</Text>
+                  <Text style={styles.dropdownButtonText}>Download Model</Text>
                 </Pressable>
+
 
                 <Pressable
                   style={({ hovered }) => [
@@ -558,6 +594,10 @@ const DrawingScreen = ({ navigation }) => {
                   textureScale={textureScale} // Pass the texture scale to the model
                   canvasWidth={canvasWidth}
                   canvasHeight={canvasHeight}
+                  onModelLoaded={(obj) => {
+                    console.log('Model loaded:', obj);
+                    setLoadedObject(obj);
+                  }}
                   skintoneColor={skintoneColor}
                 />
               </Suspense>
