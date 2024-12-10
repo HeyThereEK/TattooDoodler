@@ -17,7 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Ionicons, Feather } from '@expo/vector-icons';
 import { TitilliumWeb_200ExtraLight } from '@expo-google-fonts/titillium-web'
 import { TitilliumWeb_300Light } from '@expo-google-fonts/titillium-web'
 import DrawingCanvas from '../components/DrawingCanvas';
@@ -121,8 +121,9 @@ const DrawingScreen = ({ navigation }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false); // State for dropdown visibility
   const [isSaveModalVisible, setIsSaveModalVisible] = useState(false); // State to manage save modal visibility
   const [isDesignSaved, setIsDesignSaved] = useState(false);// State to track if the design is saved
-  const [textureScale, setTextureScale] = useState(0.4); // State to manage the scale of the texture
+  const [textureScale, setTextureScale] = useState(0.1); // State to manage the scale of the texture
   const [isTattooApplied, setIsTattooApplied] = useState(false); // State to track if the tattoo has been applied
+  const [leftPanelDimensions, setLeftPanelDimensions] = useState({ width: 0, height: 0 });
   const canvasWidth = canvasRef.current?.canvasWidth || 0;
   const canvasHeight = canvasRef.current?.canvasHeight || 0;
 
@@ -161,6 +162,7 @@ const DrawingScreen = ({ navigation }) => {
     width: 100, // initial width
     height: 100, // initial height
   });
+
   const route = useRoute();
   const { design } = route.params || {}; // Get the passed design data
 
@@ -338,6 +340,15 @@ const DrawingScreen = ({ navigation }) => {
     navigation.navigate('Home'); // Navigate to home
   };
 
+  const clampedX = Math.min(
+    Math.max(boundingBox.x, 0),
+    Math.max(leftPanelDimensions.width - boundingBox.width, 0) // ensure no negative
+  );
+  const clampedY = Math.min(
+    Math.max(boundingBox.y, 0),
+    Math.max(leftPanelDimensions.height - boundingBox.height, 0)
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Toolbar */}
@@ -440,7 +451,14 @@ const DrawingScreen = ({ navigation }) => {
 
       {/* Drawing Area */}
       <View style={styles.drawingContainer}>
-        <View style={styles.leftPanel}>
+        <View
+          style={styles.leftPanel}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            console.log('LeftPanel dimensions:', width, height);
+            setLeftPanelDimensions({ width, height });
+          }}
+        >
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
             <Canvas
@@ -602,48 +620,23 @@ const DrawingScreen = ({ navigation }) => {
               />
 
               {/* Resizable bounding box */}
-              <div>
-                <Draggable
-                  bounds={{
-                    left: 0,
-                    top: 0,
-                    right: canvasWidth - boundingBox.width,
-                    bottom: canvasHeight - boundingBox.height,
-                  }}
-                  position={{ x: boundingBox.x, y: boundingBox.y }}
-                  onDrag={(e, data) => {
-                    setBoundingBox((prev) => ({
-                      ...prev,
-                      x: data.x,
-                      y: data.y,
-                    }));
-                  }}
-                >
-                  <ResizableBox
-                    width={boundingBox.width}
-                    height={boundingBox.height}
-                    minConstraints={[canvasWidth * 0.1, canvasHeight * 0.1]} // Example minimum size
-                    maxConstraints={[canvasWidth, canvasHeight]}
-                    lockAspectRatio
-                    onResizeStop={(e, { size }) => {
-                      setBoundingBox((prev) => ({
-                        ...prev,
-                        width: size.width,
-                        height: size.height,
-                      }));
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: boundingBox.y,
-                      left: boundingBox.x,
-                      borderWidth: 3,
-                      borderColor: 'white',
-                      borderStyle: 'solid',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Draggable>
-              </div>
+              <Draggable
+                position={{ x: 0, y: 0 }}
+                onDrag={(e, data) => {
+                  setBoundingBox((prev) => ({
+                    ...prev,
+                    x: prev.x + data.deltaX,
+                    y: prev.y + data.deltaY,
+                  }));
+                }}
+              >
+                <View style={{
+                  position: 'absolute',
+                  transform: `translate(${clampedX}px, ${clampedY}px)`,
+                }}>
+                  <Feather name="move" size={24} color="black" />
+                </View>
+              </Draggable>
             </>
           )}
         </View>
