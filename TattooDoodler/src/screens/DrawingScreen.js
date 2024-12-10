@@ -33,93 +33,76 @@ import { useRoute } from '@react-navigation/native';
 import { TouchableWithoutFeedback } from 'react-native';
 import { Slider } from 'react-native-elements';
 
-const BodyPartModel = ({ objPath, texture, boundingBox, textureScale }) => {
+const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidth, canvasHeight }) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
     if (object) {
-
-      // Calculate the bounding box of the object
+      // Re-center the model
       const box = new THREE.Box3().setFromObject(object);
       const center = new THREE.Vector3();
       box.getCenter(center);
-
-      // Translate the object to center it on the origin
       object.position.sub(center);
 
       object.traverse((child) => {
         if (child.isMesh && child.geometry) {
           child.castShadow = true;
           child.receiveShadow = true;
-          // console.log('UV Attributes:', child.geometry.attributes.uv || 'No UV found');
-          // console.log('UV Attributes array:', child.geometry.attributes.uv.array);
-          // const uvArray = child.geometry.attributes.uv.array;
-          if (texture) {
-            child.material.map = texture; // Apply texture
-            console.log('Applying texture:', texture);
-            console.log(child.geometry.attributes.position);
-            texture.center.set(0.5, 0.5);
-            console.log("texture center", texture.center)
-            texture.rotation = 0
-            // // Calculate new texture offset and repeat based on bounding box
-            // const textureOffsetX = (boundingBox.x + boundingBox.width / 2) / boundingBox.width - 0.5;
-            // const textureOffsetY = (boundingBox.y + boundingBox.height / 2) / boundingBox.height - 0.5;
-            const textureOffsetX = (boundingBox.x / boundingBox.width) - 0.5;
-            const textureOffsetY = (boundingBox.y / boundingBox.height) - 0.5;
 
-            const textureRepeatX = (100 / boundingBox.width) / textureScale;
-            const textureRepeatY = (100 / boundingBox.height) / textureScale;
-            // const textureRepeatX = (boundingBox.width / 100) * textureScale;
-            // const textureRepeatY = (boundingBox.height / 100) * textureScale;
+          if (texture && canvasWidth > 0 && canvasHeight > 0) {
+            child.material.map = texture;
 
-            texture.offset.set(
-              THREE.MathUtils.clamp(textureOffsetX, 0, 1),
-              THREE.MathUtils.clamp(textureOffsetY, 0, 1)
-            );
-            console.log('Applying texture offset:', textureOffsetX, textureOffsetY);
+            // Calculate the bounding box center
+            const boxCenterX = boundingBox.x + boundingBox.width / 2;
+            const boxCenterY = boundingBox.y + boundingBox.height / 2;
+            const boxCenterYFromBottom = canvasHeight - boxCenterY;
+
+            const textureRepeatX = (boundingBox.width / canvasWidth) / textureScale;
+            const textureRepeatY = (boundingBox.height / canvasHeight) / textureScale;
+
+            const textureOffsetX = (boxCenterX / canvasWidth) - (textureRepeatX / 2);
+            const textureOffsetY = (boxCenterYFromBottom / canvasHeight) - (textureRepeatY / 2);
+
+            texture.offset.set(textureOffsetX, textureOffsetY);
             texture.repeat.set(textureRepeatX, textureRepeatY);
-            console.log('Applying texture repeat x:', textureRepeatX, 'Applying texture repeat y:', textureRepeatY);
-
-            // texture.wrapS = THREE.ClampToEdgeWrapping; // Prevents wrapping beyond texture bounds
-            // texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
 
             child.material.needsUpdate = true;
-          } else {
-            child.material = new THREE.MeshPhysicalMaterial({ // Use MeshPhysicalMaterial for better shading
-              color: 0x009999,
-              // metalness: 0.5,
-              roughness: 0.75,
+          } else if (!texture) {
+            // Default material if no texture
+            child.material = new THREE.MeshPhysicalMaterial({
+              color: 0xffeeea,
+              roughness: 1.0,
               clearcoat: 1.0,
               clearcoatRoughness: 0.5,
             });
           }
         }
       });
-      object.rotation.x = 0; // Ensure the model is not rotated on the X-axis
-      object.rotation.z = 0; // Ensure the model is not rotated on the Z-axis
-      // Adjust the rotation based on the specific model being loaded
+
+      // Adjust rotations as needed for your model
       if (objPath.includes('head')) {
-        object.rotation.y = Math.PI; // Rotate the head model to face the camera
+        object.rotation.y = Math.PI;
       } else if (objPath.includes('torso')) {
-        // object.rotation.y = -Math.PI; // Rotate the torso model to face the camera
         object.rotation.x = -Math.PI / 2;
       } else if (objPath.includes('leg')) {
-        // object.rotation.y = -Math.PI; // Rotate the leg model to face the camera
         object.rotation.x = -Math.PI;
       } else if (objPath.includes('arm')) {
-        // object.rotation.y = -Math.PI; // Rotate the leg model to face the camera
         object.rotation.x = -Math.PI;
       } else {
-        object.rotation.y = Math.PI; // Default rotation for other models
+        object.rotation.y = Math.PI;
       }
     }
-  }, [object, texture, boundingBox, textureScale]);
+  }, [object, texture, boundingBox, textureScale, canvasWidth, canvasHeight]);
 
-  return <primitive
-    object={object}
-    scale={[0.15, 0.15, 0.15]} // Reduce size to fit the scene
-    position={[0, 0, 0]} // Center the model
-  />;
+  return (
+    <primitive
+      object={object}
+      scale={[0.15, 0.15, 0.15]}
+      position={[0, 0, 0]}
+    />
+  );
 };
 
 const DrawingScreen = ({ navigation }) => {
@@ -539,6 +522,8 @@ const DrawingScreen = ({ navigation }) => {
                   texture={selectedTexture}
                   boundingBox={boundingBox}
                   textureScale={textureScale} // Pass the texture scale to the model
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
                 />
               </Suspense>
             </Canvas>
@@ -617,14 +602,6 @@ const DrawingScreen = ({ navigation }) => {
               />
 
               {/* Resizable bounding box */}
-              <BodyPartModel
-                objPath={selectedModel?.objPath}
-                texture={selectedTexture}
-                boundingBox={boundingBox}
-                textureScale={textureScale}
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
-              />
               <div>
                 <Draggable
                   bounds={{
@@ -672,7 +649,6 @@ const DrawingScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.rightPanel}>
-          <Text style={styles.canvasLabel}>Sketchpad</Text>
           <DrawingCanvas ref={canvasRef} selectedTool={selectedTool} onToolChange={handleToolChange} />
 
           <TouchableOpacity style={styles.toolButton} onPress={applyDrawingToTexture}>
