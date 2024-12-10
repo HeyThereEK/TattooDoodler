@@ -473,6 +473,7 @@ const DrawingScreen = ({ navigation }) => {
               />
             </View>
           )}
+          
             
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
