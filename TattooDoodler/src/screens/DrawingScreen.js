@@ -10,6 +10,7 @@ import {
   Image,
   PanResponder,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { useFonts } from "expo-font";
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
@@ -33,7 +34,7 @@ import { useRoute } from '@react-navigation/native';
 import { TouchableWithoutFeedback } from 'react-native';
 import { Slider } from 'react-native-elements';
 
-const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidth, canvasHeight, onModelLoaded }) => {
+const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidth, canvasHeight, onModelLoaded, skintoneColor }) => {
   const object = useLoader(OBJLoader, objPath);
 
   useEffect(() => {
@@ -72,7 +73,9 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidt
           } else if (!texture) {
             // Default material if no texture
             child.material = new THREE.MeshPhysicalMaterial({
-              color: 0xffeeea,
+              // color: 0xffeeea, // Change skintone color
+              // color: 0x935d47, // Model skintone color
+              color: skintoneColor, // Custom skintone color
               roughness: 1.0,
               clearcoat: 1.0,
               clearcoatRoughness: 0.5,
@@ -99,8 +102,7 @@ const BodyPartModel = ({ objPath, texture, boundingBox, textureScale, canvasWidt
       }
     }
 
-  }, [object, texture, boundingBox, textureScale, canvasWidth, canvasHeight]);
-
+  }, [object, texture, boundingBox, textureScale, canvasWidth, canvasHeight, skintoneColor]);
   return (
     <primitive
       object={object}
@@ -132,7 +134,7 @@ const DrawingScreen = ({ navigation }) => {
   const canvasWidth = canvasRef.current?.canvasWidth || 0;
   const canvasHeight = canvasRef.current?.canvasHeight || 0;
   const [loadedObject, setLoadedObject] = useState(null);
-
+  const [skintoneColor, setSkintoneColor] = useState('#935d47'); // Default skintone color
 
   const handleToolChange = (tool) => {
     setSelectedTool(tool);
@@ -497,6 +499,18 @@ const DrawingScreen = ({ navigation }) => {
             setLeftPanelDimensions({ width, height });
           }}
         >
+          {selectedModel && (<View style={styles.colorInputContainer}>
+              <TextInput
+                style={styles.colorInput}
+                value={skintoneColor}
+                onChangeText={setSkintoneColor}
+                placeholder="#935d47"
+                placeholderTextColor="#888"
+              />
+            </View>
+          )}
+          
+            
           {/* Conditionally render the BodyPartModel if a body part is selected */}
           {selectedModel ? (
             <Canvas
@@ -583,7 +597,8 @@ const DrawingScreen = ({ navigation }) => {
                   onModelLoaded={(obj) => {
                     console.log('Model loaded:', obj);
                     setLoadedObject(obj);
-                  }}                  
+                  }}
+                  skintoneColor={skintoneColor}
                 />
               </Suspense>
             </Canvas>
@@ -649,7 +664,7 @@ const DrawingScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          {isTattooApplied && (
+          {isTattooApplied && selectedModel && (
             <>
               {/* Slider to adjust texture scale */}
               <Slider
@@ -1037,6 +1052,23 @@ const styles = StyleSheet.create({
     width: 175, // Adjust the width as needed
     height: 50,
     // height: 200, // Adjust the height as needed
+  },
+  colorInputContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 10,
+  },
+  colorInput: {
+    width: 100,
+    height: 40,
+    backgroundColor: '#3d3d3d',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: '#878787',
+    borderColor: '#878787',
+    borderWidth: 1,
   },
 });
 

@@ -263,6 +263,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 200, // Adjust the width as needed
     height: 50,
+    marginRight: 12,
     // height: 200, // Adjust the height as needed
   },
 });
