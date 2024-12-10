@@ -141,7 +141,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
           <View style={styles.footer}>
             <TouchableOpacity style={styles.clearButton} onPress={clearDrawings}>
-                <Text style={styles.clearButtonText}>Clear Drawings</Text>
+              <Text style={styles.clearButtonText}>Clear Drawings</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
